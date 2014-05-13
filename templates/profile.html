@@ -1,0 +1,222 @@
+{%extends "base.html"%}
+
+{%block title%}Profile Page{%endblock%}
+
+{%block sidebar%}
+    <h2>Plot Profiles</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form action='{%url "area"%}' method='post'>{%csrf_token%} 
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+     
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+    </form>
+    <button id='plotrender'>View</button> 
+{%endblock%}
+
+
+{%block content%}
+    <h2 style='text-align:center'>View Panel</h2>
+    <hr>
+    <div id='chart' style='clear: both; margin:auto; height: 75%;'></div>
+
+{%endblock%}
+
+{%block js%}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script>
+$(document).ready(function() {
+var currentproj = -1;
+
+Highcharts.setOptions({
+     colors: [
+              '#001f3f',
+              '#0074d9',
+              '#7fdbff',
+              '#39cccc',
+              '#3d9970',
+              '#2ecc40',
+              '#01ff70',
+              '#ffdc00',
+              '#ff851b',
+              '#ff4136',
+              '#85144b',
+              '#f012be',
+              '#b10dc9',
+             ]
+});
+
+function highchartsload(data) {
+        $('#chart').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Sample Profiles'
+            },
+            xAxis: {
+                categories: data[0],
+                labels: {
+                    enabled: false,
+                    rotation: -90,
+                    align: 'right',
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Abundance'
+                },
+                stackLabels: {
+                    enabled: false,
+                }
+            },
+            tooltip: {
+                formatter: function() {
+                    return '<b>'+ this.x +'</b><br/>'+
+                        this.series.name +': '+ this.y;}
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0,
+                    groupPadding: 0,
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: false,
+                    }
+                }
+            },
+            series: data[1]
+        });
+        $('.highcharts-legend').remove();
+    }
+
+function runajax(form, chart) {
+        $("div#content").block({message: '<h3><img src="{{STATIC_URL}}img/busy.gif" /> Processing...</h3>'}); 
+	$.ajax({
+            type: form.attr('method'),
+            url: form.attr('action'),
+            data: form.serialize()+"&format=json",
+            dataType: 'json',
+            success: function (data) {
+                //alert(JSON.stringify(data)); 
+                mycontent  = "<h2>Query: "+$('select[name=query]', form).val()+"</h2><br>";
+                chart.html(mycontent+'<svg></svg>');
+                //loadgraph(data);
+                highchartsload(data);
+            },
+            complete: function() { 
+                    // unblock when remote call returns 
+                    $("div#content").unblock();  
+            }, 
+        });
+}
+
+    $('form select[name=query]').change(function (ev) {
+      selectedproj = parseInt($('form select[name=query]').find('option:selected').attr('rel'));
+      if (currentproj != selectedproj) {
+          loaddataset();
+      }
+    });
+
+    $('form select[name=dataset]').change(function (ev) {
+      loadmethods();
+    });
+
+    $('form select[name=method]').change(function (ev) {
+      loadcategories();
+    });
+
+    var frm = $('form');
+    $('#plotrender').click(function() {
+          runajax(frm, $('#chart'));
+    });
+
+});
+
+function loaddataset() {
+    var query = $('select[name=query]');
+    var projectID = $(query).find('option:selected').attr('rel');
+    var activeval = $('select[name=dataset]').val();
+    if (projectID) {
+        $.ajax({
+            type: 'GET',
+            url: "{%url 'ListDatasets'%}",
+            data: "projectID="+projectID+"&format=json",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                $('select[name=dataset]').empty();
+                for (i in data) {
+                    $('select[name=dataset]').append("<option value='"+data[i]+"'>"+data[i]+"</option>");
+                }
+                if (activeval) { $('select[name=dataset] option[value='+activeval+']').attr('selected', 'selected');}
+            },
+            complete: function() {
+                loadmethods();
+            },
+        });
+    }
+}
+
+function loadmethods() {
+    var query = $('select[name=query]');
+    var projectID = $(query).find('option:selected').attr('rel');
+    var dataset =  $('select[name=dataset]').val();
+    var activeval = $('select[name=method]').val();
+    if (dataset && projectID) {
+        $.ajax({
+            type: 'GET',
+            url: "{%url 'ListMethods'%}",
+            data: "projectID="+projectID+"&dataset="+dataset+"&format=json",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                $('select[name=method]').empty();
+                for (i in data) {
+                    $('select[name=method]').append("<option value='"+data[i]+"'>"+data[i]+"</option>");
+                }
+                if (activeval) { $('select[name=method] option[value='+activeval+']').attr('selected', 'selected');}
+            },
+            complete: function() {
+                loadcategories();
+            },
+        });
+    }
+}
+
+function loadcategories() {
+    var query = $('select[name=query]');
+    var projectID = $(query).find('option:selected').attr('rel');
+    var dataset =  $('select[name=dataset]').val();
+    var method =  $('select[name=method]').val();
+    var activeval = $('select[name=category]').val();
+    if (dataset && projectID && method) {
+        $.ajax({
+            type: 'GET',
+            url: "{%url 'ListCategories'%}",
+            data: "projectID="+projectID+"&dataset="+dataset+"&method="+method+"&format=json",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                $('select[name=category]').empty();
+                for (i in data) {
+                    $('select[name=category]').append("<option value='"+data[i]+"'>"+data[i]+"</option>");
+                }
+                if (activeval) { $('select[name=category] option[value='+activeval+']').attr('selected', 'selected');}
+            },
+        });
+    }
+}
+
+</script>
+
+{%endblock%}

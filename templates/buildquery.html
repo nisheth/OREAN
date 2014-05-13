@@ -1,0 +1,110 @@
+{%extends "base.html"%}
+
+{%block title%}Build Query{%endblock%}
+
+{%block sidebar%}
+<h2>Build a Query</h2>
+{%endblock%}
+
+{%block content%}
+<h4>Only samples passing all filters will be included</h4>
+<form action="{%url 'buildquery'%}" method='POST'>{%csrf_token%}
+<table id='mytable'>
+<tr><td>Project</td><td><select name='project'>{%for project in projects%}<option value="{{project.id}}">{{project.name}}</option>{%endfor%}</select></td></tr>
+<tr><td>Query Name</td><td><input name='queryname'/></td></tr>
+<tbody class='filterblock'> 
+<tr><th colspan=2><hr></th></tr>
+<tr><td>Attribute</td><td><select name='attribute'></select></td></tr>
+<tr><td>Operator</td><td><select name='operator'></select></td></tr>
+<tr><td>Value</td><td><input name='filtervalue'/></td></tr>
+</tbody>
+</table>
+<button type='button' id='addfilter'>Add another filter</button>
+<br>
+<br>
+<input type='submit' value='Submit'/>
+</form>
+{%endblock%}
+
+
+{%block js %}
+<script>
+var operators;
+var attrs;
+
+function SortByName(a, b){
+  var aName = a.name.toLowerCase();
+  var bName = b.name.toLowerCase(); 
+  return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
+}
+
+function getops() {
+    var ops = $.ajax({
+       type: "GET",
+       url: '{%url "BuildQuery" %}',
+       async:false,
+       success: function (data) {
+       },
+   }).responseText;
+   return JSON.parse(ops)[2].operators; 
+}
+
+function updateops(element) {
+    var opelement = $(element).find('select[name=operator]');
+    $(opelement).empty();
+    var active = $(element).find('select[name=attribute]').find(':selected');
+    if ($(active).length == 0) {active = $(element).find('select[name=attribute]')[0];}
+    var activetype = attrs[active.attr("rel")]['fieldtype'];
+    $.each(operators, function(i, item) {
+         if (jQuery.inArray(activetype, item.types) != -1) {
+             $(element).find('select[name=operator]').append("<option value='"+i+"'>"+item.operator+"</option>");
+         };
+    });
+}
+
+function updateattr(projectID) {
+   $('.dropfilter').click();
+   attrs = $.ajax({
+       type: "GET",
+       url: '{%url "ListAttributes" %}',
+       data: "projectID="+projectID+"&format=json",
+       async:false,
+       success: function (data) {
+           $.each(data.sort(SortByName), function(i, item) {
+              $('select[name=attribute]').append("<option rel='"+i+"' value='"+item.name+"'>"+item.name+"</option>");
+           });
+       },
+   }).responseText; 
+   attrs = JSON.parse(attrs);
+   attrs = attrs.sort(SortByName);
+   $('.filterblock').each(function() {updateops(this)});
+}
+
+$(document).ready(function() {
+     operators = getops();
+     updateattr($('select[name=project]').val());     
+});
+
+$('select[name="project"]').change(function() {
+     updateattr($('select[name=project]').val());     
+});
+
+$('body').on('click', 'select[name="attribute"]', function() {
+     updateops($(this).closest('tbody'));     
+});
+
+$('#addfilter').click(function() {
+     var element = $('.filterblock:first');
+     var mytable = $('#mytable');
+     var myclone = element.clone();
+     $(myclone).find('tr:last').append('<button type="button" class="dropfilter">Remove</button>');
+     mytable.append(myclone);
+     updateops($(myclone).closest('tbody'));
+});
+
+$('body').on('click', '.dropfilter', function() {
+    $(this).closest('tbody').remove();
+});
+
+</script>
+{%endblock%}

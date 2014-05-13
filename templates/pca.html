@@ -1,0 +1,145 @@
+{%extends "base.html" %}
+
+{%block "title"%}MiRA PCA{%endblock%}
+
+{%block sidebar%}
+Choose Queries
+<select id='queryoptions' size="{{queryies|length}}" multiple style="width: 75%;">
+{%for q in queries%}
+    <option value="{{q.name}}">{{q.name}}</option>
+{%endfor%}
+</select><br>
+<button type='button' id='choosequery'>Add to Selection</button>
+<hr>
+
+<form id='diversityform' action="{%url 'alpha'%}" method='GET'>
+Chosen Queries
+<select id='chosenquery' size="5" multiple style="width: 75%;">
+</select><br>
+<button type='button' id='removequery'>Remove from Selection</button>
+<hr>
+<button type='button' id='submit'>Submit</button>
+</form>
+{%endblock%}
+
+{%block content%}
+<div id='chart' style='clear: both; margin:auto; height: 75%;'></div>
+{%endblock%}
+{%block js%}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/highcharts-more.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script>
+
+Highcharts.setOptions({
+     colors: [
+              '#001f3f',
+              '#0074d9',
+              '#7fdbff',
+              '#39cccc',
+              '#3d9970',
+              '#2ecc40',
+              '#01ff70',
+              '#ffdc00',
+              '#ff851b',
+              '#ff4136',
+              '#85144b',
+              '#f012be',
+              '#b10dc9',
+             ]
+});
+
+function loadchart(data) {
+    $('#chart').highcharts({
+        chart: {
+            type: 'scatter',
+            zoomType: 'xy'
+        },
+        title: {
+            text: 'Principal Components Analysis',
+        },
+        xAxis: {
+            title: {
+                enabled: true,
+                text: 'PC1'
+            },
+            startOnTick: true,
+            endOnTick: true,
+            showLastLabel: true
+        },
+        yAxis: {
+            title: {
+                text: 'PC2'
+            }
+        },
+        legend: {
+            align: 'center',
+            verticalAlign: 'bottom',
+       },
+        plotOptions: {
+            scatter: {
+                marker: {
+                    radius: 5,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            lineColor: 'rgb(100,100,100)'
+                        }
+                    }
+                },
+                states: {
+                    hover: {
+                        marker: {
+                            enabled: false
+                        }
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<b>{series.name}</b><br>',
+                    pointFormat: 'PC1: {point.x:.2f}<br>PC2: {point.y:.2f}'
+                }
+            }
+        },
+        series: data
+	});
+}
+
+function getdiversity(selectedItem) {
+    $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
+    $.ajax({
+        type: 'GET',
+        url: "{%url 'pca'%}",
+        data: selectedItem,
+        dataType: 'json',
+        success: function (data) {
+            loadchart(data);
+        },
+        complete: function() {    
+            $("#content").unblock();  
+        },
+    });
+} 
+
+$('#choosequery').click(function() {
+    var selectedItem = $("#queryoptions option:selected");
+    $("#chosenquery").append(selectedItem);
+});
+
+$('#removequery').click(function() {
+    var selectedItem = $("#chosenquery option:selected");
+    $("#queryoptions").append(selectedItem);
+});
+
+$('#submit').click(function() {
+    
+    var selectedItem = ""; 
+    var count = 0;
+    $("#chosenquery option").each(function() {
+        selectedItem += "query="+$(this).val()+"&";
+        count+=1;
+    });
+    if(count == 2) {getdiversity(selectedItem);}
+    else{alert('Must select exactly 2 queries');}
+});
+</script>
+{%endblock%}

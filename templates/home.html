@@ -1,0 +1,79 @@
+{%extends "base.html"%}
+
+{%block title%}Home Page{%endblock%}
+
+{%block sidebar%}
+    <h2>Plot Attributes</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form action='{%url "home"%}' method='post'>{%csrf_token%} 
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+
+    <hr>
+    <legend>Select an Attribute</legend>
+       <select name='attribute'>
+       <option value="">---</option>
+       {%for attr in attributes%}
+           <option value="{{attr}}" {%if attr == selectedattribute%} selected{%endif%}>{{attr}}</option>
+       {%endfor%}
+       </select><br>
+       <br>
+    </form>
+{%endblock%}
+
+
+{%block content%}
+    <h2 style='text-align:center'>View Panel</h2>
+    <hr>
+    <div id='chart' style='width:50%; height:50%; margin:auto'><svg></svg></div>
+{%endblock%}
+
+{%block js%}
+<script>
+$(document).ready(function() {
+function loadgraph(data) {
+nv.addGraph(function() {
+  var chart = nv.models.discreteBarChart()
+      .x(function(d) { return d.label })    //Specify the data accessors.
+      .y(function(d) { return d.value })
+      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
+      .tooltips(false)        //Don't show tooltips
+      .showValues(true)       //...instead, show the bar value right on top of each bar.
+      .transitionDuration(350)
+      ;
+
+  d3.select('#chart svg')
+      .datum(data)
+      .call(chart);
+
+  nv.utils.windowResize(chart.update);
+
+  return chart;
+});
+}
+
+var frm = $('form');
+    $('form').change(function (ev) {
+      if ($('form select[name=query]').val() && $('form select[name=attribute]').val()) {
+        $.ajax({
+            type: frm.attr('method'),
+            url: frm.attr('action'),
+            data: frm.serialize()+"&format=json",
+            success: function (data) {
+                mycontent  = "<h2>Query: "+$('form select[name=query]').val()+"</h2><h2>Attribute: "+$('form select[name=attribute]').val()+"</h2><br>";
+                $('#chart').html(mycontent+'<svg></svg>');
+                loadgraph(data);
+            },
+        });
+      }
+        ev.preventDefault();
+    });
+
+});
+</script>
+{%endblock%}

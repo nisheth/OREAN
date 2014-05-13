@@ -1,0 +1,22 @@
+{%extends "base.html"%}
+
+{%block title%}Build Query{%endblock%}
+
+{%block sidebar%}
+<h2>Build a Query</h2>
+{%endblock%}
+
+{%block content%}
+<h4>Enter a list of samples, one per line, to save an externally devised query. Samples that do not exist in the database will be ignored</h4>
+<form action="{%url 'samplebasedquery'%}" method='POST'>{%csrf_token%}
+<table id='mytable'>
+<tr><td>Project</td><td><select name='project'>{%for project in projects%}<option value="{{project.id}}">{{project.name}}</option>{%endfor%}</select></td></tr>
+<tr><td>Query Name</td><td><input name='queryname'/></td></tr>
+<tr><td>Query Description</td><td><textarea rows='5' name='querydescription'/></textarea></td></tr>
+<tr><td>Sample List</td><td><textarea rows="20" name='samplelist'/></textarea></td></tr>
+</table>
+<br>
+<br>
+<input type='submit' value='Submit'/>
+</form>
+{%endblock%}

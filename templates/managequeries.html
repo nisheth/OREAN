@@ -1,0 +1,70 @@
+{% extends "base.html"%}
+
+{%block title%}Manage Queries{%endblock%}
+
+{%block sidebar%}
+<h2>Manage Queries</h2>
+{%endblock%}
+
+
+{%block content%}
+
+<table>
+<tr><th>Name</th><th>Description</th><th>Number of Samples</th><th>Shared</th><th>Owner</th><th>Actions</th></tr>
+{%for q in queries%}
+<tr>
+    <td>{{q.name}}</td>
+    <td>{%if q.descrption%}{{q.descrption}}{%else%}None{%endif%}</td>
+    <td>{{q.numsamples}}</td>
+    <td>{{q.share}}</td>
+    <td>{{q.user}}</td>
+{%if q.user == request.user.username %}
+    <td><button class='sharebutton' type='button' rel={{q.project}} value="{{q.name}}">Switch Shared Status</button><button class='deletebutton' type='button' rel={{q.project}} value="{{q.name}}">Delete This Query</button></td>
+{%else%}
+    <td>Not Available</td>
+{%endif%}
+
+</tr>
+{%endfor%}
+</table>
+
+{%endblock%}
+
+{%block js%}
+<script>
+$('.sharebutton').click(function() {
+    var statuselement = $(this).closest('tr').find('td:nth-child(3)');
+    var queryname = $(this).val();
+    var projectID = parseInt($(this).attr("rel"));
+    $.ajax({
+        type: 'GET',
+        url: '{%url "ShareQuery"%}',
+        data: "projectID="+projectID+"&queryname="+queryname ,
+        success: function (data) {
+            if (parseInt(data) == 0) { $(statuselement).text('False');}
+            else { $(statuselement).text('True');}
+        },
+    });
+});
+
+
+$('.deletebutton').click(function() {
+    var rowelement = $(this).closest('tr');
+    var queryname = $(this).val();
+    var projectID = parseInt($(this).attr("rel"));
+    var r=confirm("Are you sure you want to delete query '"+queryname+"'?");
+    if (r==true) {
+        $.ajax({
+            type: 'get',
+            url: '{%url "DeleteQuery"%}',
+            data: "projectID="+projectID+"&queryname="+queryname,
+            success: function (data) {
+                $(rowelement).remove();
+            },
+        });
+    }
+});
+
+
+</script>
+{%endblock%}
