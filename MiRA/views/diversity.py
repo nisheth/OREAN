@@ -6,6 +6,7 @@ import simplejson as json
 import time
 import os
 from api import internal
+from MiRA.views import RPATH
 
 @login_required
 def alpha(request):
@@ -37,7 +38,7 @@ def alpha(request):
                         else: mycontent += str('0')
                     mycontent+='\n'
                     f.write(mycontent)
-            boxplot = myutils.runRscript('/home/MiRA/Rscripts/alphaDiversity.R', filename)
+            boxplot = myutils.runRscript('alphaDiversity.R', filename)
             boxplot,outliers = boxplot.split('\n')[:2]
             boxplot = boxplot.split(',')
             outliers = outliers.split(',')
@@ -84,7 +85,7 @@ def beta(request):
                         else: mycontent += str('0')
                     mycontent+='\n'
                     f.write(mycontent)
-            boxplot = myutils.runRscript('/home/MiRA/Rscripts/betaDiversity.R', filename)
+            boxplot = myutils.runRscript('betaDiversity.R', filename)
             boxplot,outliers = boxplot.split('\n')[:2]
             boxplot = boxplot.split(',')
             outliers = outliers.split(',')

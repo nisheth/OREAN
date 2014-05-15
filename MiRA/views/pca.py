@@ -40,7 +40,7 @@ def main(request):
 		    mycontent+=','
                 mycontent+='\n'
                 f.write(mycontent)
-        pca = myutils.runRscript('/home/MiRA/Rscripts/pca.R', filename)
+        pca = myutils.runRscript('pca.R', filename)
         pca = pca.split('\n')
         pca.pop(0) 
         pca.pop() 

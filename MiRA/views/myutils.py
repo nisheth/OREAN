@@ -5,6 +5,7 @@ import urllib
 import traceback
 import json
 import subprocess
+from MiRA.views import RPATH
 
 def call_api(request, api, params={}):
     try:
@@ -24,7 +25,7 @@ def fieldexpand(s):
     return s.split(',')
 
 def runRscript(script, file):
-    cmd = ['Rscript', script, file]
+    cmd = ['Rscript', RPATH+script, file]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     out, err = p.communicate()
     return out
