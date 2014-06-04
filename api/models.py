@@ -39,7 +39,7 @@ class Query(models.Model):
     project = models.ForeignKey(Project)
     name=models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True, blank=True)
-    sqlstring = models.TextField()
+    sqlstring = models.TextField(null=True, blank=True)
     results = models.TextField()
     share = models.IntegerField(default=0)
 

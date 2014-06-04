@@ -17,7 +17,10 @@ urlpatterns = patterns('',
 
     # GUI frontend
     url(r'^$', 'MiRA.views.home.main', name='home'),
+    url(r'^attributes$', 'MiRA.views.attributes.main', name='attributes'),
+    url(r'^16sProfileBoxplot$', 'MiRA.views.16sProfileBoxplot.main', name='16sProfileBoxplot'),
     url(r'^area$', 'MiRA.views.area.main', name='area'),
+    url(r'^analytics$', 'MiRA.views.analytics.main', name='analytics'),
     url(r'^diversity/alpha$', 'MiRA.views.diversity.alpha', name='alpha'),
     url(r'^diversity/beta$', 'MiRA.views.diversity.beta', name='beta'),
     url(r'^pca$', 'MiRA.views.pca.main', name='pca'),

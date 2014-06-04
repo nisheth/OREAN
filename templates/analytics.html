@@ -1,0 +1,309 @@
+{%extends "base.html" %}
+
+{%block title%}Analytics{%endblock%}
+
+{%block sidebar%}
+<legend>Select a Query</legend>
+  <form action='#' method='GET'>{%csrf_token%}
+   <select id='queryselect' name='query'>
+   <option value="">---</option>
+   {%for query in queries %}
+   <option pid="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+   {%endfor%}
+   </select><br>
+   <hr>
+
+<legend>Select Attributes</legend>
+<div class='selecttbl'>
+  <div class='selectrow'>
+    <div class='selectleft'>Choices</div>
+    <div class='selectmiddle'></div>
+    <div class='selectright'>Selections</div>
+  </div>
+  <div class='selectrow'>
+    <div class='selectleft'>
+      <select id='attrlist' multiple style="width: 75%;">
+      </select>
+    </div>
+    <div class='selectmiddle'>
+      <button type='button' id='choosequery'><span class="glyphicon glyphicon-arrow-right"></span></button><br>
+      <button type='button' id='removequery'><span class="glyphicon glyphicon-arrow-left"></span></button>
+    </div>
+    <div class='selectright'>
+        <select id='chosenattrs' name='chosenattrs' multiple style="width: 75%;">
+        </select>
+    </div>
+  </div>
+  <div class='selectrow'>
+    <div class='selectleft'></div>
+    <div class='selectmiddle'>
+      <button type='button' id='submit'>Submit</button>
+    </div>
+    <div class='selectright'></div>
+  </div>
+</div>
+
+<!--
+   Choose Attributes
+   <select id='attrlist' multiple style="width: 75%;">
+   </select><br>
+   <button type='button' id='choosequery'>Add to Selection</button>
+   <hr>
+ 
+   Selected Attributes
+   <select id='chosenattrs' name='chosenattrs' multiple style="width: 75%;">
+   </select><br>
+   <button type='button' id='removequery'>Remove from Selection</button>
+   <hr>
+   <button type='button' id='submit'>Submit</button>
+-->
+  </form>
+
+{%endblock%}
+
+{%block content%}
+<div id='graphinteraction' style='display: none;'>
+<div id='samplecount' style="text-align:center"></div>
+<button id="resetbutton" onclick="resetfilter()">Reset Filters</button> 
+<button id="makequery" onclick="makequery()" style='float:right;'>Save this query</button> 
+</div>
+
+<div id='chartcontainer'></div>
+<div id='tablewrapper' style="width:50%; float: left; height:25%; overflow:auto;">
+  <table id='mastertable' class='table' align="center" style="margin: 0 auto">
+  </table>
+</div>
+
+<div id="overlay">
+     <div>
+          <table>
+          <tr><td>Query Name</td><td><input type='text' id='newqueryname'/></td></tr>
+          <tr><td>Query Description</td><td><input type='text' id='newquerydesc'/></td></tr>
+          </table>
+          <button type='button' onclick='makequery("Submit")'>Submit</button>
+          <button type='button' onclick='makequery("Cancel")'>Cancel</button>
+     </div>
+</div>
+{%endblock%}
+
+{%block js%}
+<script>
+var currentproj = -1;
+function getattrs(pid) {
+  $("#attrlist").empty();
+  $("#chosenattrs").empty();
+  $.ajax({
+    url: '{%url "ListAttributes"%}',
+    data: "projectID="+pid,
+    success: function(data) {
+        data.sort(function(a,b){
+          if(a.name == b.name)
+            return 0;
+          if(a.name < b.name)
+            return -1;
+          if(a.name > b.name)
+            return 1;
+        });
+        data.forEach(function(attribute) {
+          $("#attrlist").append("<option>"+attribute.name+"</option>");
+        });
+    },
+    dataType: 'json',
+  });
+}
+
+$("#queryselect").change(function() {
+  var pid = parseInt($('option:selected', this).attr('pid')); 
+  if (!isNaN(pid)) 
+  {
+    if (pid!=currentproj) 
+    {
+      getattrs(pid);
+      currentproj=pid;
+    }
+  }
+});
+
+$('#choosequery').click(function() {
+  var selectedItem = $("#attrlist option:selected");
+  $("#chosenattrs").append(selectedItem);
+});
+
+$('#removequery').click(function() {
+  var selectedItem = $("#chosenattrs option:selected");
+  $("#attrlist").append(selectedItem);
+});
+
+function arraytotable (myarr, header) {
+  var tblrow = "";
+  if (header) {
+  $.each(myarr, function (k, v) {
+    tblrow+="<th>"+v+"</th>";
+  });
+  } else {
+  $.each(myarr, function (k, v) {
+    tblrow+="<td>"+v+"</td>";
+  });
+  }
+  return "<tr>"+tblrow+"</tr>";
+}
+var cf;
+var headers;
+var chartobjs = {};
+
+function preparedims (keys) {
+     for (var k in keys) {
+         feature = keys[k];
+         chartobjs[feature] = cf.dimension(function (p) {return p[feature]});
+     }
+}
+
+function formatdata() {
+    tmp = chartobjs[header[0]].top(Infinity);
+    $("#samplecount").text("Samples with current filters: "+cf.groupAll().value());
+    myobj = {};
+    for (var x in tmp) {
+      row = tmp[x];
+      for (var y in header) {
+        key = header[y];
+        if (!(key in myobj)) {
+          myobj[key] = {}
+        }
+        if (row[key] in myobj[key]) {
+          myobj[key][row[key]] += 1;
+        } else {
+          myobj[key][row[key]] = 1;
+        }
+      } 
+    }
+    
+    mykeyvals = {};
+    for (var x in myobj) {
+      mykeyvals[x] = []
+      for (var y in myobj[x]) {
+        mykeyvals[x].push({'key': y, 'value': myobj[x][y]});   
+      }
+      makeplot(mykeyvals[x], x)
+    }
+}
+
+$("#submit").click(function() {
+  var forchart = []; 
+  var pid = parseInt($('option:selected', "#queryselect").attr('pid'));
+  var attrstring = "";
+  var choices = document.getElementById('chosenattrs').options;
+  for (var i=0; i < choices.length; i++) {
+    attrstring+="&attribute="+choices[i].text;
+  }
+
+  $.ajax({
+    url: '{%url "GetData"%}',
+    data: "projectID="+pid+"&queryname="+$("#queryselect").val()+attrstring,
+    success: function(data) {
+        $("#chartcontainer").empty();
+        $("#mastertable").empty();
+        header = "";
+        header = data.shift();
+        $("#mastertable").append(arraytotable(header, true));
+        data.forEach(function(row) {
+          $("#mastertable").append(arraytotable(row, false));
+          var tmpdict= {};
+          for (var i=0; i < row.length; i++) {
+            tmpdict[header[i]] = row[i];
+          }
+          forchart.push(tmpdict); 
+        });
+        header.shift(); 
+        $("#graphinteraction").show();
+        cf = crossfilter(forchart);
+        preparedims(header);
+        formatdata();
+    },
+    dataType: 'json',
+  });
+
+});
+
+var chart;
+
+function makeplot(input, colName) {
+  var elem = $("#chartcontainer");
+  if (!$("[name=\""+colName+"\"]").length) {
+  $(elem).append("<div style='background-color: white; width: 50%; height: 25%; float:left; padding: 25px 0 25px 0;' name=\""+colName+"\"><h5 style='text-align:center'>"+colName+"<button type='button' style='display: none' class='resetbutton' value=\""+colName+"\">Reset</button></h5><svg></svg></div>");  
+  }  
+  
+  var obj = [{"values": input}];
+
+  nv.addGraph(function() {
+    chart = nv.models.discreteBarChart()
+        .x(function(d) { return d.key })    //Specify the data accessors.
+        .y(function(d) { return d.value })
+        .staggerLabels(false)    //Too many bars and not enough room? Try staggering labels.
+        .tooltips(false)        //Don't show tooltips
+        .showValues(true)       //...instead, show the bar value right on top of each bar.
+        .transitionDuration(350)
+        ;
+  
+    d3.select('[name="'+colName+'"] svg')
+        .datum(obj)
+        .call(chart);
+  
+    nv.utils.windowResize(chart.update);
+   
+    return chart;
+  },function(){
+    d3.selectAll(".nv-bar").on('click',
+      function(e){
+        var param = $(this).closest('div').attr('name');
+        $(this).closest('div').find('button').show();
+        dofilter(param, e.key);
+        //console.log(e.key);
+        //console.log($(this).closest('div').attr('name'));
+    });
+  });
+}
+
+function dofilter(param, value) {
+    chartobjs[param].filter(value);
+    formatdata();
+}
+
+function resetfilter() {
+    for (var k in header) {
+        chartobjs[header[k]].filter(null);
+    }
+    formatdata();
+}
+
+$('body').on('click', '.resetbutton', function() {
+    var param = $(this).val();
+    chartobjs[param].filter(null);
+    $(this).hide();
+    formatdata();
+});
+
+function makequery(arg) {
+    if (arg == "Submit") {
+        params = "projectID="+currentproj+"&queryname="+$("#newqueryname").val()+"&description="+$("#newquerydesc").val();
+        params += "&csrfmiddlewaretoken={{csrf_token}}";
+        d=chartobjs[header[0]];
+        foo = d.top(Infinity);
+        for (var k in foo) {params += "&sample="+foo[k].Sample};
+        $.ajax({
+            url: '{%url "BuildQuery"%}',
+            type: "POST",
+            dataType: "json",
+            data: params+"&format=json",
+            success: function(data) {
+                alert("Query saved successfully"); 
+            },
+            error: function(xhr, status, error) {
+                alert(xhr.responseText);
+            },
+        });
+    }
+    el = document.getElementById("overlay");
+    el.style.visibility = (el.style.visibility == "visible") ? "hidden" : "visible";    
+}
+</script>
+{%endblock%}

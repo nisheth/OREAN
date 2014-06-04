@@ -1,0 +1,158 @@
+{%extends "base.html" %}
+
+{%block title%}16s Profiles{%endblock%}
+
+{%block sidebar%}
+Choose Query
+<form id='diversityform' action="{%url 'alpha'%}" method='GET'>
+<select id='query' style="width: 75%;">
+{%for q in queries%}
+    <option value="{{q.name}}">{{q.name}}</option>
+{%endfor%}
+</select><br>
+<hr>
+<button type='button' id='submit'>Submit</button>
+</form>
+{%endblock%}
+
+{%block content%}
+<div id='chart' style='clear: both; margin:auto; height: 75%;'></div>
+<div id='selectform' style='display:none'><input id="sampleselection" type='text'/><br><button type='button' id='fetchsample'>View sample</button><table id='samplestable' align="center" style="margin: 0 auto;"></table></div>
+{%endblock%}
+{%block js%}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/highcharts-more.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script>
+
+var mychart; // this will hold the rendered chart object
+
+// function renders chart using data from ajax call
+function loadchart(data) {
+    mychart = new Highcharts.Chart({
+
+	    chart: {
+                renderTo: "chart",
+	        type: 'boxplot'
+	    },
+	    
+	    title: {
+	        text: '16s Profiles'
+	    },
+	    
+	    legend: {
+	        enabled: false
+	    },
+	
+	    xAxis: {
+	        categories: data[0],
+                labels: {
+                rotation:-90,
+                },
+	        title: {
+	            text: 'Taxa'
+	        }
+	    },
+	    
+	    yAxis: {
+	        title: {
+	            text: 'Relative Abundance',
+	        },
+	    },
+	
+	    series: [{
+	        name: 'Observations',
+	        data: data[1],
+                color: 'black',
+	        tooltip: {
+	            headerFormat: '<strong>Query: </strong><em>{point.key}</em><br/>'
+	        }
+	    }, {
+	        name: 'Outlier',
+	        color: 'black',
+	        type: 'scatter',
+	        data: data[2],
+	        marker: {
+	            fillColor: 'white',
+	            lineWidth: 1,
+	            lineColor: 'black',
+	        },
+	        tooltip: {
+	            pointFormat: 'Observation: {point.y}'
+	        }
+	    }]
+	
+	});
+}
+
+// ajax call to fetch chart data
+// returns JSON array as following format:
+// [ [labels for each box] [array of values for each box] [array of [x,y] outliers for the plot] ]
+function getdiversity(selectedItem) {
+    $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
+    $.ajax({
+        type: 'GET',
+        url: "{%url '16sProfileBoxplot'%}",
+        data: selectedItem,
+        dataType: 'json',
+        success: function (data) {
+            loadchart(data); 
+            for (var i = 0; i < samplelist.length; i++) { // loop through any existing samples so sample data stays on chart after re-rendering
+                fetchsample(samplelist[i]); 
+            }
+            $("#selectform").show(); // make sample entry visible (starts as hidden)
+        },
+        complete: function() {    
+            $("#content").unblock();  
+        },
+    });
+} 
+
+// capture requested query and call getdiversity function to make ajax call
+$('#submit').click(function() {
+    
+    var selectedItem = ""; 
+    $("#query option:selected").each(function() {
+        selectedItem += "query="+$(this).val()+"&";
+    });
+    getdiversity(selectedItem)
+});
+
+var samplelist = []; // holds list of samples on the plot
+var colorchoices = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'brown']; //colors to use for the sample points added to the plot
+
+// function captures the requested sample and calls ajax if sample is not already rendered
+$("#fetchsample").click(function() {
+ var sample = $("#sampleselection").val().trim();
+ if ($.inArray(sample, samplelist) == -1) {
+    fetchsample(sample); 
+ }
+});
+
+// fetches profile of requested sample, handles both first time and repeat requests
+function fetchsample(sample) {
+    var indexspot = $.inArray(sample, samplelist); // location of sample in list
+    var flag = (indexspot == -1); // boolean test for sample presence in list
+    if (flag) { // if sample is not in list, add it to the list
+        indexspot = samplelist.length;
+        samplelist[samplelist.length] = sample;
+    }
+    $.ajax({
+        type: 'GET',
+        url: "{%url 'GetDataset'%}",
+        data: "projectID=1&dataset=Data-16s&category=genus&method=RDP-0-5&sample="+sample,
+        dataType: 'json',
+        success: function (data) {
+            var mycolor = colorchoices[indexspot]; // determine color of points for this sample
+            $.each(data, function(key, value) { // loops through profile data and adds to chart
+                var elemIndex = $.inArray(value[5], mychart.userOptions.xAxis.categories);
+                if(elemIndex >= 0) {
+                     mychart.series[1].addPoint({x:elemIndex, y: value[7], fillColor: mycolor});
+                }
+            });
+            if (flag) {$("#samplestable").append("<tr><td>"+sample+"</td><td style='width: 10px; background-color:"+mycolor+";'></td></tr>");} // if this is first time request add sample to table with color key
+        },
+    });
+}
+</script>
+{%endblock%}

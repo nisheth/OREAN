@@ -9,14 +9,14 @@
 
 {%block content%}
 
-<table>
+<table class='table'>
 <tr><th>Name</th><th>Description</th><th>Number of Samples</th><th>Shared</th><th>Owner</th><th>Actions</th></tr>
 {%for q in queries%}
 <tr>
     <td>{{q.name}}</td>
-    <td>{%if q.descrption%}{{q.descrption}}{%else%}None{%endif%}</td>
+    <td>{%if q.description%}{{q.description}}{%else%}None{%endif%}</td>
     <td>{{q.numsamples}}</td>
-    <td>{{q.share}}</td>
+    <td name='shared'>{{q.share}}</td>
     <td>{{q.user}}</td>
 {%if q.user == request.user.username %}
     <td><button class='sharebutton' type='button' rel={{q.project}} value="{{q.name}}">Switch Shared Status</button><button class='deletebutton' type='button' rel={{q.project}} value="{{q.name}}">Delete This Query</button></td>
@@ -33,7 +33,7 @@
 {%block js%}
 <script>
 $('.sharebutton').click(function() {
-    var statuselement = $(this).closest('tr').find('td:nth-child(3)');
+    var statuselement = $(this).closest('tr').find('td[name=shared]');
     var queryname = $(this).val();
     var projectID = parseInt($(this).attr("rel"));
     $.ajax({

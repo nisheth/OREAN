@@ -17,6 +17,7 @@ def main(request):
          tmp['share'] = bool(q['share'])
          tmp['user'] = User.objects.get(pk=q['user_id']).username
          tmp['project'] = q['project_id']
+         tmp['description'] = q['description']
          params['queries'].append(tmp)
     #if request.method=='POST':
     #    queryname = request.POST.get('query') or None

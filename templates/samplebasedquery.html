@@ -1,9 +1,10 @@
 {%extends "base.html"%}
 
-{%block title%}Build Query{%endblock%}
+{%block title%}Import Sample List{%endblock%}
 
 {%block sidebar%}
-<h2>Build a Query</h2>
+<h2>Build query from sample list</h2>
+<a href='{%url "buildquery"%}'><button class='btn btn-default'>Build using filters</button></a>
 {%endblock%}
 
 {%block content%}
@@ -13,7 +14,7 @@
 <tr><td>Project</td><td><select name='project'>{%for project in projects%}<option value="{{project.id}}">{{project.name}}</option>{%endfor%}</select></td></tr>
 <tr><td>Query Name</td><td><input name='queryname'/></td></tr>
 <tr><td>Query Description</td><td><textarea rows='5' name='querydescription'/></textarea></td></tr>
-<tr><td>Sample List</td><td><textarea rows="20" name='samplelist'/></textarea></td></tr>
+<tr><td>Sample List</td><td><textarea rows="20" name='sampleslist'/></textarea></td></tr>
 </table>
 <br>
 <br>

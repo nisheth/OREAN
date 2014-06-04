@@ -144,8 +144,9 @@ class ListAttributes(generics.ListAPIView):
 # Assembles Queries based on criteria
 # stores resulting sample ids into Query table for reference
 # Written by Steven Bradley
-class BuildQuery(generics.ListAPIView):
+class BuildQuery(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
+    model=Query
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
 
@@ -252,6 +253,31 @@ class BuildQuery(generics.ListAPIView):
                        )
         myquery.save()
         return Response(queryset)            
+
+
+    def post(self, request, *args, **kwargs):
+        pid = request.POST.get('projectID', None)
+        queryname = request.POST.get('queryname', None)
+        querydesc = request.POST.get('description', None)
+        samples = request.POST.getlist('sample', None)
+        if not pid or not queryname or not samples:
+            raise APIException("required parameters are: projectID, queryname, sample")
+        try:
+           pid = int(pid)
+           project = Project.objects.get(pk=pid)
+        except:
+           raise APIException("invalid projectID")
+        print 'API description:', querydesc
+        myquery = Query(
+                        user=request.user,
+                        project = project,
+                        name=queryname,
+                        description=querydesc,
+                        sqlstring = None,
+                        results = ",".join(samples)
+                       )
+        myquery.save()
+        return Response(samples)
 
 class ShowDistribution(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
@@ -360,29 +386,35 @@ class GetDataset(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated(): raise APIException('please provide key or login to fetch data')
         
-        pid = queryname = dataset = method = category = None
+        pid = queryname = dataset = method = category = sample = sampleslist = None
         
         # Get parameters
         pid = request.GET.get('projectID') or None
         if pid is None: raise APIException('projectID is required') 
+        sample = request.GET.get('sample') or None
    
         queryname = request.GET.get('queryname') or None
-        if queryname is None: raise APIException('queryname is required') 
+        if queryname is None and sample is None: raise APIException('queryname is required') 
 
         dataset = request.GET.get('dataset') or None
         if dataset is None: raise APIException('dataset is required') 
 
         method = request.GET.get('method') or None
         category = request.GET.get('category') or None
+    
 
         try:
-            myquery = Query.objects.get(name=queryname)
-            sampleslist = myquery.expandsamples
+            if sample is not None: 
+                sampleslist = [sample]
+            else:
+                myquery = Query.objects.get(name=queryname)
+                sampleslist = myquery.expandsamples
         except: raise APIException("No query found for name '%s'" % queryname)
 
         queryset = Analysis.objects.filter(project = pid, dataset = dataset, sample__in=sampleslist)
         if method is not None: queryset = queryset.filter(method=method)
         if category is not None: queryset = queryset.filter(category=category)
+        print queryset.query
         header = ['project', 'sample', 'dataset', 'method', 'category', 'entity', 'numreads', 'profile', 'avgscore']
         array = []
         array.append(header)

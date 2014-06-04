@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>MiRA: {%block title%}{%endblock%}</title>
+<link rel="stylesheet" href="{{STATIC_URL}}css/nv.d3.css" />
+<link rel="stylesheet" href="{{STATIC_URL}}css/custom.css" />
+<link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
+<link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-theme.min.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
+
+<style>
+.nv-bar { cursor: pointer; }
+html, body { 
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;         /* Opera/IE 8+ */
+}
+</style>
+</head>
+<body>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
+
+<h1>MiRA</h1>
+  <div style='top:0; right: 0; position: relative;'>
+  {%if request.user.is_authenticated and request.user.is_superuser %}
+    <a href='{% url "home" %}admin/'><button>Admin</button></a>
+  {%endif%}
+  {%if request.user.is_authenticated%}
+    <a href='{% url "buildquery" %}'><button>Build A Query</button></a>
+    <a href='{% url "managequeries" %}'><button>Manage Queries</button></a>
+    <a href='{% url "attributes" %}'><button>Plot Attibutes</button></a>
+    <a href='{% url "area" %}'><button>Plot Profiles</button></a>
+    <a href='{% url "16sProfileBoxplot" %}'><button>Profile Distributions</button></a>
+    <a href='{% url "alpha" %}'><button>Alpha Diversity</button></a>
+    <a href='{% url "beta" %}'><button>Beta Diversity</button></a>
+    <a href='{% url "pca" %}'><button>PCA</button></a>
+    <a href='{% url "APIRoot" %}'><button>Interactive API</button></a>
+    <a href="{%url 'logout'%}"><button>Logout {{request.user.username}}</button></a>
+  {%else%}
+    <a href='{%url "login"%}'><button>Login</button></a>
+  {%endif%}
+    <div style='float:right'>Version: Pre-Alpha</div>
+</div>
+
+<hr>
+<div style="height: 100%">
+<div id='sidebar' style='float: left; min-height: 100%; height:auto; width: 15%; background:darkblue; position: relative; color: white;'>
+{%block sidebar%}
+{%endblock%}
+</div>
+
+<div id='content' style='float: left; min-height: 100%; height:auto; width: 85%; background:lightgrey; position: relative;'>
+{%block content %}
+{%endblock%}
+<div style='clear: both'></div>
+</div>
+</div>
+
+{%block js %}
+{%endblock%}
+
+<script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
+<script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
+</body>
+</html>

@@ -1,79 +1,76 @@
-{%extends "base.html"%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>MiRA: Home</title>
+    <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="{{STATIC_URL}}css/cover.css">
+  </head>
 
-{%block title%}Home Page{%endblock%}
+  <body>
 
-{%block sidebar%}
-    <h2>Plot Attributes</h2>
-    <hr>
-    <legend>Select a Query</legend>
-    <form action='{%url "home"%}' method='post'>{%csrf_token%} 
-       <select name='query'>
-       <option value="">---</option>
-       {%for query in queries %}
-       <option value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
-       {%endfor%}
-       </select><br>
+    <div class="site-wrapper">
 
-    <hr>
-    <legend>Select an Attribute</legend>
-       <select name='attribute'>
-       <option value="">---</option>
-       {%for attr in attributes%}
-           <option value="{{attr}}" {%if attr == selectedattribute%} selected{%endif%}>{{attr}}</option>
-       {%endfor%}
-       </select><br>
-       <br>
-    </form>
-{%endblock%}
+      <div class="site-wrapper-inner">
 
+        <div class="cover-container">
 
-{%block content%}
-    <h2 style='text-align:center'>View Panel</h2>
-    <hr>
-    <div id='chart' style='width:50%; height:50%; margin:auto'><svg></svg></div>
-{%endblock%}
+          <div class="masthead clearfix">
+            <div class="inner">
+              <h3 class="masthead-brand">MiRA</h3>
+              <ul class="nav masthead-nav">
+                <li class="dropdown text-left">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Queries <b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{%url 'buildquery'%}">Build</a></li>
+                    <li><a href="{%url 'managequeries'%}">Manage</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown text-left">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Analysis <b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{%url 'attributes'%}">Attributes</a></li>
+                    <li><a href='{% url "area" %}'>Profiles</a></li>
+                    <li><a href='{% url "16sProfileBoxplot" %}'>Profile Distributions</a></li>
+                    <li><a href='{% url "alpha" %}'>Alpha Diversity</a></li>
+                    <li><a href='{% url "beta" %}'>Beta Diversity</a></li>
+                    <li><a href='{% url "pca" %}'>PCA</a></li>
+                    <li><a href='{% url "analytics" %}'>Analytics</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
 
-{%block js%}
-<script>
-$(document).ready(function() {
-function loadgraph(data) {
-nv.addGraph(function() {
-  var chart = nv.models.discreteBarChart()
-      .x(function(d) { return d.label })    //Specify the data accessors.
-      .y(function(d) { return d.value })
-      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
-      .tooltips(false)        //Don't show tooltips
-      .showValues(true)       //...instead, show the bar value right on top of each bar.
-      .transitionDuration(350)
-      ;
+          <div class="inner cover">
+            <p class="lead">MiRA stands for <b><u>Mi</u></b>crobiome <b><u>R</u></b>esearch <b><u>A</u></b>nalytics and serves as a resource for analysis, visualization, and sharing of multi-omic microbiome datasets.</p>
+            <p class="lead">
+              {%if user.is_authenticated%}
+              <a href="{%url 'logout'%}" class="btn btn-lg btn-default">Sign out <span class="glyphicon glyphicon-log-out"></span></a>
+              {%else%}
+              <a href="{%url 'login'%}" class="btn btn-lg btn-default">Sign in <span class="glyphicon glyphicon-log-in"></span></a>
+              {%endif%}
+            </p>
+          </div>
 
-  d3.select('#chart svg')
-      .datum(data)
-      .call(chart);
+          <div class="mastfoot">
+            <div class="inner">
+              <p>MiRA</p>
+            </div>
+          </div>
 
-  nv.utils.windowResize(chart.update);
+        </div>
 
-  return chart;
-});
-}
+      </div>
 
-var frm = $('form');
-    $('form').change(function (ev) {
-      if ($('form select[name=query]').val() && $('form select[name=attribute]').val()) {
-        $.ajax({
-            type: frm.attr('method'),
-            url: frm.attr('action'),
-            data: frm.serialize()+"&format=json",
-            success: function (data) {
-                mycontent  = "<h2>Query: "+$('form select[name=query]').val()+"</h2><h2>Attribute: "+$('form select[name=attribute]').val()+"</h2><br>";
-                $('#chart').html(mycontent+'<svg></svg>');
-                loadgraph(data);
-            },
-        });
-      }
-        ev.preventDefault();
-    });
+    </div>
 
-});
-</script>
-{%endblock%}
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
+  </body>
+</html>
