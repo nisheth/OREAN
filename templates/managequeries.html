@@ -19,7 +19,7 @@
     <td name='shared'>{{q.share}}</td>
     <td>{{q.user}}</td>
 {%if q.user == request.user.username %}
-    <td><button class='sharebutton' type='button' rel={{q.project}} value="{{q.name}}">Switch Shared Status</button><button class='deletebutton' type='button' rel={{q.project}} value="{{q.name}}">Delete This Query</button></td>
+    <td><button class='sharebutton btn btn-default' type='button' rel={{q.project}} value="{{q.name}}">Switch Shared Status</button><button class='deletebutton btn btn-default' type='button' rel={{q.project}} value="{{q.name}}">Delete This Query</button></td>
 {%else%}
     <td>Not Available</td>
 {%endif%}

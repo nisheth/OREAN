@@ -4,7 +4,7 @@
 
 {%block sidebar%}
 <legend>Select a Query</legend>
-  <form action='#' method='GET'>{%csrf_token%}
+<form action='#' method='GET'>{%csrf_token%}
    <select id='queryselect' name='query'>
    <option value="">---</option>
    {%for query in queries %}
@@ -43,25 +43,8 @@
   </div>
 </div>
 
-<!--
-   Choose Attributes
-   <select id='attrlist' multiple style="width: 75%;">
-   </select><br>
-   <button type='button' id='choosequery'>Add to Selection</button>
-   <hr>
- 
-   Selected Attributes
-   <select id='chosenattrs' name='chosenattrs' multiple style="width: 75%;">
-   </select><br>
-   <button type='button' id='removequery'>Remove from Selection</button>
-   <hr>
-   <button type='button' id='submit'>Submit</button>
--->
-  </form>
+</form>
 
-{%endblock%}
-
-{%block content%}
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -85,6 +68,9 @@
   </div>
 </div>
 
+{%endblock%}
+
+{%block content%}
 
 <div id='graphinteraction' style='display: none;'>
 <div id='samplecount' style="text-align:center"></div>
@@ -98,18 +84,6 @@
   <table id='mastertable' class='table' align="center" style="color: white; margin: 0 auto">
   </table>
 </div>
-<!--
-<div id="overlay">
-     <div>
-          <table>
-          <tr><td>Query Name</td><td><input type='text' id='newqueryname'/></td></tr>
-          <tr><td>Query Description</td><td><input type='text' id='newquerydesc'/></td></tr>
-          </table>
-          <button type='button' onclick='makequery("Submit")'>Submit</button>
-          <button type='button' onclick='makequery("Cancel")'>Cancel</button>
-     </div>
-</div>
--->
 {%endblock%}
 
 {%block js%}
@@ -256,7 +230,7 @@ var chart;
 function makeplot(input, colName) {
   var elem = $("#chartcontainer");
   if (!$("[name=\""+colName+"\"]").length) {
-  $(elem).append("<div style='background-color: white; width: 50%; height: 25%; float:left; padding: 25px 0 25px 0;' name=\""+colName+"\"><h5 style='text-align:center'>"+colName+"<button type='button' style='display: none' class='resetbutton' value=\""+colName+"\">Reset</button></h5><svg></svg></div>");  
+  $(elem).append("<div style='background-color: white; width: 50%; height: 25%; float:left; padding: 25px 0 25px 0;' name=\""+colName+"\"><h5 style='text-align:center;color:black;'>"+colName+"<button type='button' style='display: none' class='resetbutton' value=\""+colName+"\">Reset</button></h5><svg></svg></div>");  
   }  
   
   var obj = [{"values": input}];
@@ -330,8 +304,6 @@ function makequery(arg) {
             },
         });
     }
-    el = document.getElementById("overlay");
-    el.style.visibility = (el.style.visibility == "visible") ? "hidden" : "visible";    
 }
 </script>
 {%endblock%}

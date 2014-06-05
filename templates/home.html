@@ -60,7 +60,7 @@
 
           <div class="mastfoot">
             <div class="inner">
-              <p>MiRA</p>
+              <p>MiRA {%if user.is_superuser%}<a href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench"></span></a>{%endif%}</p>
             </div>
           </div>
 

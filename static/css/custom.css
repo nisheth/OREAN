@@ -6,6 +6,12 @@ html, body {
         background-color: lightgrey;
   background-image: url(../img/brushed_alu_dark/brushed_alu_dark.png);
   background-repeat: repeat;
+  padding-top: 25px;
+  min-height: 100% !important;
+}
+
+div#content, div#content > table {
+ color:#ffffff;
 }
 
 #overlay {
