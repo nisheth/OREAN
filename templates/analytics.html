@@ -37,7 +37,7 @@
   <div class='selectrow'>
     <div class='selectleft'></div>
     <div class='selectmiddle'>
-      <button type='button' id='submit'>Submit</button>
+      <button class="btn btn-default" type='button' id='submit'>Submit</button>
     </div>
     <div class='selectright'></div>
   </div>
@@ -62,18 +62,43 @@
 {%endblock%}
 
 {%block content%}
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">New query with current filters</h4>
+      </div>
+      <div class="modal-body">
+          <table>
+          <tr><td>Query Name</td><td><input type='text' id='newqueryname'/></td></tr>
+          <tr><td>Query Description</td><td><input type='text' id='newquerydesc'/></td></tr>
+          </table>
+      </div>
+      <div class="modal-footer">
+        <span id='modalnumsamples' class='pull-left'></span>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick='makequery("Submit")'>Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div id='graphinteraction' style='display: none;'>
 <div id='samplecount' style="text-align:center"></div>
-<button id="resetbutton" onclick="resetfilter()">Reset Filters</button> 
-<button id="makequery" onclick="makequery()" style='float:right;'>Save this query</button> 
+<button id="resetbutton" class="btn btn-default" onclick="resetfilter()">Reset All Filters</button> 
+<!--<button id="makequery" onclick="makequery()" style='float:right;'>Save this query</button>-->
+<button class="btn btn-default pull-right" data-toggle="modal" data-target="#myModal">Save this query</button>
 </div>
 
 <div id='chartcontainer'></div>
 <div id='tablewrapper' style="width:50%; float: left; height:25%; overflow:auto;">
-  <table id='mastertable' class='table' align="center" style="margin: 0 auto">
+  <table id='mastertable' class='table' align="center" style="color: white; margin: 0 auto">
   </table>
 </div>
-
+<!--
 <div id="overlay">
      <div>
           <table>
@@ -84,6 +109,7 @@
           <button type='button' onclick='makequery("Cancel")'>Cancel</button>
      </div>
 </div>
+-->
 {%endblock%}
 
 {%block js%}
@@ -161,6 +187,7 @@ function preparedims (keys) {
 function formatdata() {
     tmp = chartobjs[header[0]].top(Infinity);
     $("#samplecount").text("Samples with current filters: "+cf.groupAll().value());
+    $("#modalnumsamples").text("This query would contain "+cf.groupAll().value()+" samples.");
     myobj = {};
     for (var x in tmp) {
       row = tmp[x];
@@ -273,6 +300,7 @@ function resetfilter() {
         chartobjs[header[k]].filter(null);
     }
     formatdata();
+    $(".resetbutton").each(function()  {$(this).hide()});
 }
 
 $('body').on('click', '.resetbutton', function() {
@@ -298,7 +326,7 @@ function makequery(arg) {
                 alert("Query saved successfully"); 
             },
             error: function(xhr, status, error) {
-                alert(xhr.responseText);
+                alert("Error in saving query. Please verify that the query name and description fields are completed.");
             },
         });
     }
