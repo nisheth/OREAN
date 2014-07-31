@@ -7,22 +7,22 @@
           <hr>
           <legend>Select a Query</legend>
           <form action='{%url "attributes"%}' method='post'>{%csrf_token%}
-             <select name='query'>
+             <select id='querychoice' name='query'>
              <option value="">---</option>
              {%for query in queries %}
-             <option value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+             <option pid="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
              {%endfor%}
              </select><br>
       
           <hr>
           <legend>Select an Attribute</legend>
-             <select name='attribute'>
+          <select name='attribute'>
              <option value="">---</option>
              {%for attr in attributes%}
-                 <option value="{{attr}}" {%if attr == selectedattribute%} selected{%endif%}>{{attr}}</option>
+             <option value="{{attr}}" {%if attr == selectedattribute%} selected{%endif%}>{{attr}}</option>
              {%endfor%}
-             </select><br>
-             <br>
+          </select><br><br>
+          <button type='button' id='plotrender' class='btn btn-default'>Submit</button>
           </form>
 {%endblock%}
 
@@ -33,6 +33,7 @@
 
 {%block js%}
 <script>
+var currentproj = -1;
 $(document).ready(function() {
 function loadgraph(data) {
 nv.addGraph(function() {
@@ -55,8 +56,12 @@ nv.addGraph(function() {
 });
 }
 
+$("#querychoice").change(function() {
+   console.log($(this).find("option:selected").text());
+});
+
 var frm = $('form');
-    $('form').change(function (ev) {
+    $('#plotrender').click(function (ev) {
       if ($('form select[name=query]').val() && $('form select[name=attribute]').val()) {
         $.ajax({
             type: frm.attr('method'),

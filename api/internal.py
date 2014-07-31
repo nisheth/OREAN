@@ -19,6 +19,7 @@ def GetDataset(request, params={}):
 
         method = params.get('method', [None])[0]
         category = params.get('category', [None])[0] 
+        entities = params.get('entity', None)
 
         try:
             myquery = Query.objects.get(name=queryname)
@@ -28,4 +29,5 @@ def GetDataset(request, params={}):
         queryset = Analysis.objects.filter(project = pid, dataset = dataset, sample__in=sampleslist)
         if method is not None: queryset = queryset.filter(method=method)
         if category is not None: queryset = queryset.filter(category=category)
+        if entities is not None: queryset = queryset.filter(entity__in=entities)
         return queryset

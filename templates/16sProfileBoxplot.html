@@ -4,23 +4,41 @@
 
 {%block sidebar%}
 Choose Query
-<form id='diversityform' action="{%url 'alpha'%}" method='GET'>
-<select id='query' style="width: 75%;">
+<form id='diversityform' action="{%url '16sProfileBoxplot'%}" method='GET'>
+<select id='query' multiple style="width: 75%;">
 {%for q in queries%}
     <option value="{{q.name}}">{{q.name}}</option>
 {%endfor%}
 </select><br>
 <hr>
+
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+       <input name='projectID' type='hidden' id='currentproj' value="{{request.session.projectID}}"/>
+
+
 <button type='button' id='submit'>Submit</button>
 </form>
 {%endblock%}
 
 {%block content%}
 <div id='chart' style='clear: both; margin:auto; height: 75%;'></div>
-<div id='selectform' style='display:none; color:black;'><input id="sampleselection" type='text'/><br><button class='btn btn-default' type='button' id='fetchsample'>View sample</button><table id='samplestable' align="center" style="margin: 0 auto; color:white"></table></div>
+<div class='row'>
+<div class='col-xs-4 text-center'>
+<div id='selectform' style='display:none; color:black;'><input id="sampleselection" type='text'/><br><button class='btn btn-default' type='button' id='fetchsample'>View sample</button>
+</div>
+</div>
+<div class='col-xs-4'>
+<table id='querytable' align="center" style="display:none; margin: 0 auto; color:white"><thead><tr><th>Query</th><th>Key</th></tr></thead><tbody></tbody></table>
+</div>
+<div class='col-xs-4'>
+<table id='samplestable' align="center" style="display:none; margin: 0 auto; color:white"><tr><th>Sample</th><th>Key</th></tr></table>
+</div>
+</div>
 {%endblock%}
 {%block js%}
-<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/stock/highstock.js"></script>
 <script src="http://code.highcharts.com/highcharts-more.js"></script>
 <script src="http://code.highcharts.com/modules/exporting.js"></script>
 <script>
@@ -28,7 +46,7 @@ Choose Query
 var mychart; // this will hold the rendered chart object
 
 // function renders chart using data from ajax call
-function loadchart(data) {
+function loadchart(data, N) {
     mychart = new Highcharts.Chart({
 
 	    chart: {
@@ -37,7 +55,7 @@ function loadchart(data) {
 	    },
 	    
 	    title: {
-	        text: '16s Profiles'
+	        text: 'Entity Profiles'
 	    },
 	    
 	    legend: {
@@ -45,33 +63,56 @@ function loadchart(data) {
 	    },
 	
 	    xAxis: {
+                min:0,
+                //max:N,
 	        categories: data[0],
                 labels: {
                 rotation:-90,
                 },
 	        title: {
-	            text: 'Taxa'
+	            text: 'Entity'
 	        }
 	    },
+           
+            /*scrollbar: {
+                enabled:true,
+                barBackgroundColor: 'gray',
+                barBorderRadius: 7,
+                barBorderWidth: 0,
+                buttonBackgroundColor: 'gray',
+                buttonBorderWidth: 0,
+                buttonArrowColor: 'white',
+                buttonBorderRadius: 7,
+                rifleColor: 'white',
+                trackBackgroundColor: 'white',
+                trackBorderWidth: 1,
+                trackBorderColor: 'silver',
+                trackBorderRadius: 7
+            },*/
 	    
 	    yAxis: {
 	        title: {
 	            text: 'Relative Abundance',
 	        },
+                min: 0,
 	    },
+
+            colors: Highcharts.getOptions(colorchoices).colors.slice(0,N),
 	
 	    series: [{
 	        name: 'Observations',
 	        data: data[1],
-                color: 'black',
+                colorByPoint: true,
+                fillColor: this.color,
+                medianColor: 'white',
 	        tooltip: {
-	            headerFormat: '<strong>Query: </strong><em>{point.key}</em><br/>'
+	            headerFormat: '<strong>Profile: </strong><em>{point.key}</em><br/>'
 	        }
 	    }, {
 	        name: 'Outlier',
-	        color: 'black',
-	        type: 'scatter',
 	        data: data[2],
+                color: "black",
+	        type: 'scatter',
 	        marker: {
 	            fillColor: 'white',
 	            lineWidth: 1,
@@ -85,18 +126,37 @@ function loadchart(data) {
 	});
 }
 
+// Counts the number of repeat entity names.
+// this represents the number of queries submitted and
+// number of distinct colors to use on the plot
+function countResp(array) 
+{ 
+    count = 0; 
+    item = ""; 
+    for (var i = 0; i < array.length; i++) 
+    {
+        if ((array[i] == item)||(item == "")) 
+        {
+            item=array[i]; count+=1;
+        }
+    } 
+    return count;
+}
+
 // ajax call to fetch chart data
 // returns JSON array as following format:
 // [ [labels for each box] [array of values for each box] [array of [x,y] outliers for the plot] ]
 function getdiversity(selectedItem) {
     $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
+    var form = $('form');
     $.ajax({
-        type: 'GET',
-        url: "{%url '16sProfileBoxplot'%}",
-        data: selectedItem,
+        type: form.attr('method'),
+        url: form.attr('action'),
+        data: form.serialize()+"&format=json&"+selectedItem,
         dataType: 'json',
         success: function (data) {
-            loadchart(data); 
+            N = countResp(data[0]);
+            loadchart(data, N); 
             for (var i = 0; i < samplelist.length; i++) { // loop through any existing samples so sample data stays on chart after re-rendering
                 fetchsample(samplelist[i]); 
             }
@@ -108,12 +168,21 @@ function getdiversity(selectedItem) {
     });
 } 
 
+// Code filters "text" tags for the entity names, could use
+// this to hide names to make x axis labels less redundant, cluttered
+// myObjs = $("text").filter(function() {return (/Firmicutes/i).test($(this).text())});
+// Loop through labels and remove as desired...
+
 // capture requested query and call getdiversity function to make ajax call
 $('#submit').click(function() {
-    
+    $('#querytable tbody').empty();
+    $('#querytable').show();
     var selectedItem = ""; 
+    count = 0;
     $("#query option:selected").each(function() {
         selectedItem += "query="+$(this).val()+"&";
+        $('#querytable tbody').append('<tr><td>'+$(this).val()+"</td><td style='width: 10px; background-color:"+Highcharts.getOptions(colorchoices).colors[count]+";'></td></tr>");
+        count+=1;
     });
     getdiversity(selectedItem)
 });
@@ -125,6 +194,7 @@ var colorchoices = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'brown
 $("#fetchsample").click(function() {
  var sample = $("#sampleselection").val().trim();
  if ($.inArray(sample, samplelist) == -1) {
+    console.log("SAMPLE: "+sample);
     fetchsample(sample); 
  }
 });
@@ -137,22 +207,25 @@ function fetchsample(sample) {
         indexspot = samplelist.length;
         samplelist[samplelist.length] = sample;
     }
+    var form = $('#diversityform');
     $.ajax({
         type: 'GET',
         url: "{%url 'GetDataset'%}",
-        data: "projectID=1&dataset=Data-16s&category=genus&method=RDP-0-5&sample="+sample,
+        data: form.serialize()+"&sample="+sample,
         dataType: 'json',
         success: function (data) {
             var mycolor = colorchoices[indexspot]; // determine color of points for this sample
             $.each(data, function(key, value) { // loops through profile data and adds to chart
                 var elemIndex = $.inArray(value[5], mychart.userOptions.xAxis.categories);
-                if(elemIndex >= 0) {
+                while(elemIndex >= 0) {
                      mychart.series[1].addPoint({x:elemIndex, y: value[7], fillColor: mycolor});
+                     elemIndex = $.inArray(value[5], mychart.userOptions.xAxis.categories, elemIndex+1);
                 }
             });
-            if (flag) {$("#samplestable").append("<tr><td>"+sample+"</td><td style='width: 10px; background-color:"+mycolor+";'></td></tr>");} // if this is first time request add sample to table with color key
+            if (flag) {$("#samplestable").append("<tr><td>"+sample+"</td><td style='width: 10px; background-color:"+mycolor+";'></td></tr>"); $("#samplestable").show();} // if this is first time request add sample to table with color key
         },
     });
 }
 </script>
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
 {%endblock%}

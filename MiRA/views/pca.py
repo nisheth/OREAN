@@ -12,14 +12,17 @@ def main(request):
     params = {}
     params['queries'] = myutils.call_api(request, 'ListQueries')
     querynames = request.GET.getlist('query') or None
-    rank = 'genus'
+    inputdataset = request.GET.get('dataset') or None
+    method = request.GET.get('method') or None
+    category = request.GET.get('category') or None
     if querynames:
+        if not querynames or not inputdataset or not method or not category: return render(request, 'alpha.html', params)
         entities = []
         samples = []
         datahash = {}
         filename = "/tmp/%s-%d.txt" %(request.user.username, int(time.time()))
         for query in querynames:
-            dataset =  internal.GetDataset(request, params={'queryname': [query], 'projectID': [1], 'dataset': ['Data-16s'], 'category': [rank], 'method': ['RDP-0-5']})
+            dataset =  internal.GetDataset(request, params={'queryname': [query], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'category': [category], 'method': [method]})
             for d in dataset:
                 if d.entity not in entities:
                     entities.append(d.entity)
@@ -33,7 +36,7 @@ def main(request):
             for sample in samples: f.write(str(sample)+',')
             f.write('\n')
             for entity in entities:
-                mycontent = rank+','+entity+','
+                mycontent = category+','+entity+','
                 for sample in samples:
                     if entity in datahash[sample]: mycontent+=str(datahash[sample][entity])
                     else: mycontent += str('0')

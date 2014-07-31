@@ -1,5 +1,5 @@
 args = commandArgs(TRUE)
-mydata = read.csv(file=args[1], row.names=1)
+mydata = read.csv(file=args[1], row.names=1, skip=1)
 braycurtis = function(dat) {
 	results = vector()
 	for(j in 1:(ncol(dat)-1)) {

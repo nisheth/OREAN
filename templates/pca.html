@@ -3,6 +3,13 @@
 {%block title%}PCA{%endblock%}
 
 {%block sidebar%}
+<form action="{%url 'pca'%}" method="GET">
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>
+
+<hr><legend>Select Queries</legend>
 <div class='selecttbl'>
   <div class='selectrow'>
     <div class='selectleft'>Choices</div>
@@ -36,24 +43,7 @@
     <div class='selectright'></div>
   </div>
 </div>
-<!--
-Choose Queries
-<select id='queryoptions' size="{{queryies|length}}" multiple style="width: 75%;">
-{%for q in queries%}
-    <option value="{{q.name}}">{{q.name}}</option>
-{%endfor%}
-</select><br>
-<button type='button' id='choosequery'>Add to Selection</button>
-<hr>
-
-<form id='diversityform' action="{%url 'alpha'%}" method='GET'>
-Chosen Queries
-<select id='chosenquery' size="5" multiple style="width: 75%;">
-</select><br>
-<button type='button' id='removequery'>Remove from Selection</button>
-<hr>
-<button type='button' id='submit'>Submit</button>
-</form>-->
+</form>
 {%endblock%}
 
 {%block content%}
@@ -140,11 +130,11 @@ function loadchart(data) {
 
 function getdiversity(selectedItem) {
     $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
+    var form = $('form');
     $.ajax({
-        type: 'GET',
-        url: "{%url 'pca'%}",
-        data: selectedItem,
-        dataType: 'json',
+        type: form.attr('method'),
+        url: form.attr('action'),
+        data: form.serialize()+"&format=json&"+selectedItem,
         success: function (data) {
             loadchart(data);
         },
@@ -176,4 +166,5 @@ $('#submit').click(function() {
     else{alert('Must select exactly 2 queries');}
 });
 </script>
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
 {%endblock%}

@@ -165,3 +165,20 @@ body {
 .nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
    background-color: #999;
 }
+
+input {
+   color: black !important;
+}
+
+table {
+   border-collapse: separate;
+   border-spacing: 0 5px;
+}
+
+input, .black {
+  color: black !important;
+}
+
+.white {
+  color: white !important;
+}

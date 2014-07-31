@@ -42,3 +42,29 @@ def main(request):
         else: finalquery = myutils.call_api(request, 'BuildQuery', params={'projectID': projectID, 'attribute': attributes[0], 'cmp': operators[0], 'v1': values[0], 'queryname': queryname})
         return redirect('managequeries')
     return render(request, 'buildquery.html', params)
+
+def dataset(request):
+    if request.method=='POST':
+        projectID = int(request.POST.get('project'))
+        queryname = request.POST.get('queryname') or None
+        dataset = request.POST.get('dataset') or None
+        method = request.POST.get('method') or None
+        category = request.POST.get('category') or None
+        taxa = filter(bool, request.POST.getlist('taxa'))
+        operators = filter(bool, request.POST.getlist('compare'))
+        values = filter(bool, request.POST.getlist('value'))
+        if not len(taxa) == len(operators) == len(values) or len(values) == 0 or not dataset or not method or not category or not queryname or not projectID:
+            return redirect('buildquery')
+        attributes = ['dataset', 'method', 'category']+['entity' for x in taxa]+['profile' for x in values]
+        ops = ['eq','eq','eq']+['eq' for x in taxa]+operators
+        vals = [dataset, method, category]+[ t for t in taxa] + values
+        finalquery = None
+        args = {'projectID': projectID,
+                'attribute': attributes,
+                'cmp': ops,
+                'v1': vals,
+                'queryname': queryname
+               }
+        finalquery = myutils.call_api(request, 'BuildDatasetQuery', params=args)
+        return redirect('managequeries')
+    return redirect('buildquery')

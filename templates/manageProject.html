@@ -1,0 +1,75 @@
+{% extends "base.html"%}
+
+{%block title%}Manage Project{%endblock%}
+
+{%block sidebar%}
+<h2>Manage Project - {{request.session.projectName}}</h2>
+{%endblock%}
+
+
+{%block content%}
+    <button class="btn btn-default pull-right" data-toggle="modal" data-target="#myModal">Add project member</button>
+    <table class='table' style='color:white'>
+      <tr><th>Member Name</th><th>Email</th><th>Project Admin</th><th>Actions</th></tr>
+      {%for q in project_members%}
+      <tr>
+          <td>{{q.user.first_name}} {{q.user.last_name}}</td>
+          <td>{{q.user.email}}</td>
+          <td class='projManage'>{{q.manager}}</td>
+          <td><button class='removebutton btn btn-default' type='button' value="{{q.id}}">Remove from project</button><button class='promotebutton btn btn-default' type='button' value="{{q.id}}">Give Manager Status</button></td>
+      </tr>
+      {%endfor%}
+    </table>
+
+<!-- Modal -->
+<div class="modal fade black" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <form method="POST" action="{%url 'manageProject'%}"> {%csrf_token%}
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Add a user to this project</h4>
+      </div>
+      <div class="modal-body">
+        {{form}}
+      </div>
+      <div class="modal-footer">
+        <p>Registered accounts will be added to the project.</p><p>Unknown accounts will receive an invitation to sign up.</p>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <input type="submit" class="btn btn-primary" value="Submit"/>
+      </div>
+    </div>
+  </div>
+  </form>
+</div>
+
+{%endblock%}
+
+{%block js%}
+<script>
+
+$('.promotebutton').click(function() {
+    var element =$(this);
+    var myval = $(this).val();
+    var username = $(this).closest('tr').find('td:first').text();
+    var r=confirm("Are you sure you want to grant management control to '"+username+"' for this project?");
+    if (r) {
+      $.post("{%url 'manageProject'%}", "csrfmiddlewaretoken={{csrf_token}}&action=promote&userproject="+myval, function (data) {
+        $(element).closest('tr').find('.projManage').text("True");
+      });
+    }
+});
+
+$('.removebutton').click(function() {
+    var element =$(this);
+    var myval = $(this).val();
+    var username = $(this).closest('tr').find('td:first').text();
+    var r=confirm("Are you sure you want to remove '"+username+"' from this project?");
+    if (r) {
+      $.post("{%url 'manageProject'%}", "csrfmiddlewaretoken={{csrf_token}}&action=remove&userproject="+myval, function (data) {
+        $(element).closest('tr').remove();
+      });
+    }
+});
+</script>
+{%endblock%}

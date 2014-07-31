@@ -25,11 +25,18 @@ def generateapikey(size=16, chars=string.ascii_letters):
 # Project table
 class Project(models.Model):
     name=models.CharField(max_length=255, unique=True)
+    public=models.BooleanField(default=False)
+    user=models.ForeignKey(User)
+
+    def __unicode__(self):
+       return "%s" % self.name
 
 # Maps which users can access which projects
+# and who can manage each project
 class UserProject(models.Model):
     user=models.ForeignKey(User)
     project = models.ForeignKey(Project)
+    manager = models.BooleanField(default=False)
 
 # Query Table stores query information
 # SQL string = Raw SQL ran
@@ -89,3 +96,21 @@ class Analysis(models.Model):
     numreads = models.IntegerField()
     profile = models.FloatField()
     avgscore = models.FloatField()
+
+class EmailTokens(models.Model):
+    TYPE_CHOICES = (
+      (1, 'registration'),
+      (2, 'resetpassword'),
+    )
+  
+   
+    user = models.ForeignKey(User)
+    type = models.IntegerField(choices=TYPE_CHOICES)
+    datetime = models.DateTimeField(auto_now_add=True)
+    token = models.CharField(max_length=32, unique=True)
+
+class Invitations(models.Model):
+    email = models.EmailField()
+    project = models.ForeignKey(Project)
+    user = models.ForeignKey(User)
+    timedate = models.DateTimeField(auto_now_add=True)

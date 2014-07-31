@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from api.models import *
 import datetime
+import re
 
 class bcolors:
     HEADER = '\033[95m'
@@ -78,11 +79,14 @@ class Command(BaseCommand):
             if len(line) != 4: raise CommandError('File "%s" fails validation. Must be 4 columns. Line: %d. Content: %s' % (filename, count, line))
             if line[3] not in typecheck: typecheck[line[2]] = getfieldtype(line[3])    
             elif getfieldtype(line[3]) != typecheck[line[2]]: raise CommandError('File "%s" fails validation. Field "%s" has inconsistent type. Expected a "%s" but found a "%s". Line: %d. Content: %s' % (filename, line[2], typecheck[line[2]], getfieldtype(line[3]), count, line))
-        # Check if entries for these samples already exist
+        # Check if entries for these samples already exist and sample formatting
         samples = list(set(zip(*inputdata)[0]))
+        regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
         for s in samples:
+            if bool(regex.findall(s)): raise CommandError('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
+            if s[0].isdigit() or s[0] == "_": raise CommandError('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
+            if s[0] == "." and s[1].isdigit(): raise CommandError('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
             if Attributes.objects.filter(project = project, sample = s).exists(): raise CommandError('Data exists for sample %s in project %s (%s). Aborting load...' %(s, projectID, project.name) )
-
         alert('\tFile "%s" passed all validation criteria. Contains %d rows of data' %(filename, count))                                   
         
         # Insert Validated Input into the database for the project

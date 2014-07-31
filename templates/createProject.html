@@ -1,0 +1,25 @@
+{%extends "splash.html"%}
+
+{%block title%}MiRA: New Project{%endblock%}
+
+{%block content%}
+            <p class="lead">
+
+<form class="form-horizontal" role="form" action="{%url 'createProject'%}" method='post'>{%csrf_token%}
+  <div class="form-group">
+    <div class="col-sm-12">
+      <h1>New Project</h1>
+    </div>
+  </div>
+  <table class='formtable' align="center">
+  {{form}}
+  </table>
+  <br>
+  <div class="form-group">
+    <div class="col-sm-12">
+      <button type="submit" class="btn btn-default">Create</button>
+      <a href="{%url 'home'%}"><button type='button' class='btn btn-default'>Cancel</button></a>
+    </div>
+  </div>
+</form>
+{%endblock%}

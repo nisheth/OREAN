@@ -1,0 +1,7 @@
+Django==1.5.2
+djangorestframework
+MySQL-python
+rpy2==2.1
+numpy
+matplotlib
+argparse

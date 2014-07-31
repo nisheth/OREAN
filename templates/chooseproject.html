@@ -1,0 +1,21 @@
+{%extends "base.html"%}
+
+{%block title%}Choose Project{%endblock%}
+
+{%block sidebar%}
+<h2>Select a project</h2>
+{%endblock%}
+
+{%block content%}
+          <div class="inner cover text-center">
+            <p class="lead">
+              <h4>Choose from the list of available projects</h4>
+              <form action="{%url 'chooseproject'%}" method='POST'>{%csrf_token%}
+              <select name='project' style="color:black">{%for project in projects%}<option value="{{project.id}}|{{project.name}}">{{project.name}}</option>{%endfor%}</select>
+              <br>
+              <br>
+              <input class='btn btn-default' type='submit' value='Submit'/>
+              </form>
+            </p>
+          </div>
+{%endblock%}

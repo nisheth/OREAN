@@ -3,6 +3,13 @@
 {%block title%}Alpha Diversity{%endblock%}
 
 {%block sidebar%}
+<form method="GET" action="{%url 'alpha'%}">
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>
+
+<hr><legend>Select Queries</legend>
 <div class='selecttbl'>
   <div class='selectrow'>
     <div class='selectleft'>Choices</div>
@@ -36,6 +43,7 @@
     <div class='selectright'></div>
   </div>
 </div>
+</form>
 {%endblock%}
 
 {%block content%}
@@ -119,12 +127,14 @@ function loadchart(data) {
 
 function getdiversity(selectedItem) {
     $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
+    var form = $('form');
     $.ajax({
-        type: 'GET',
-        url: "{%url 'alpha'%}",
-        data: selectedItem,
+        type: form.attr('method'),
+        url: form.attr('action'),
+        data: form.serialize()+"&format=json&"+selectedItem,
         dataType: 'json',
         success: function (data) {
+            console.log(JSON.stringify(data));
             loadchart(data);
         },
         complete: function() {    
@@ -152,4 +162,5 @@ $('#submit').click(function() {
     getdiversity(selectedItem)
 });
 </script>
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
 {%endblock%}

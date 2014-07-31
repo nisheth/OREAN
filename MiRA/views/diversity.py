@@ -6,21 +6,25 @@ import simplejson as json
 import time
 import os
 from api import internal
-from MiRA.views import RPATH
+from MiRA.views import SCRIPTPATH
 
 @login_required
 def alpha(request):
     params = {}
     params['queries'] = myutils.call_api(request, 'ListQueries')
     querynames = request.GET.getlist('query') or None
+    inputdataset = request.GET.get('dataset') or None
+    method = request.GET.get('method') or None
+    category = request.GET.get('category') or None
     if querynames:
+        if not querynames or not inputdataset or not method or not category: return render(request, 'alpha.html', params)
         datapoints = []
         outlierpoints = []
         count = 0
         for query in querynames:
             entities = []
             datahash = {}
-            dataset =  internal.GetDataset(request, params={'queryname': [query], 'projectID': [1], 'dataset': ['Data-16s'], 'category': ['genus'], 'method': ['RDP-0-5']})
+            dataset =  internal.GetDataset(request, params={'queryname': [query], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'category': [category], 'method': [method]})
             for d in dataset:
                 if d.entity not in entities:
                     entities.append(d.entity)
@@ -57,7 +61,11 @@ def beta(request):
     params = {}
     params['queries'] = myutils.call_api(request, 'ListQueries')
     querynames = request.GET.getlist('query') or None
+    inputdataset = request.GET.get('dataset') or None
+    method = request.GET.get('method') or None
+    category = request.GET.get('category') or None
     if querynames:
+        if not querynames or not inputdataset or not method or not category: return render(request, 'alpha.html', params)
         datapoints = []
         outlierpoints = []
         count = 0
@@ -65,7 +73,7 @@ def beta(request):
             entities = []
             samples = []
             datahash = {}
-            dataset =  internal.GetDataset(request, params={'queryname': [query], 'projectID': [1], 'dataset': ['Data-16s'], 'category': ['genus'], 'method': ['RDP-0-5']})
+            dataset =  internal.GetDataset(request, params={'queryname': [query], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'category': [category], 'method': [method]})
             for d in dataset:
                 if d.entity not in entities:
                     entities.append(d.entity)
@@ -73,10 +81,10 @@ def beta(request):
                     datahash[d.sample] = {}
                     samples.append(d.sample)
                 datahash[d.sample][d.entity] = d.numreads
-            filename = "/tmp/%s-%d.txt" %(request.user.username, int(time.time()))
+            filename = "/tmp/%s-%d.txt" %(request.user.pk, int(time.time()))
             with open(filename, 'w') as f:
-                for sample in samples: f.write(','+str(sample))
-                f.write('\n')
+                #for sample in samples: f.write(','+str(sample))
+                f.write('%d,%d\n' %(len(entities), len(samples)))
                 for taxa in entities:
                     mycontent = taxa
                     for sample in samples:
@@ -85,13 +93,15 @@ def beta(request):
                         else: mycontent += str('0')
                     mycontent+='\n'
                     f.write(mycontent)
-            boxplot = myutils.runRscript('betaDiversity.R', filename)
+            #boxplot = myutils.runRscript('betaDiversity.R', filename)
+            #boxplot = myutils.runPerl('braycurtis.pl', filename)
+            boxplot = myutils.runC('braycurtis', filename)
             boxplot,outliers = boxplot.split('\n')[:2]
             boxplot = boxplot.split(',')
             outliers = outliers.split(',')
             if len(boxplot): boxplot = [float(x) for x in boxplot]
             if len(outliers): [outlierpoints.append([count,float(x)]) for x in outliers if x != '']
-            os.remove(filename)
+            #os.remove(filename)
             datapoints.append(boxplot)
             count+=1
         finaldata = [querynames, datapoints, outlierpoints]

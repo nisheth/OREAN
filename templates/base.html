@@ -9,7 +9,8 @@
 
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-  <div class="container">
+  <div class="container text-center">
+      <a class="navbar-brand" style='top:0; left:15; position:fixed; padding:15px;' href="{%url 'home'%}">MiRA</a>
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
         <span class="sr-only">Toggle navigation</span>
@@ -17,19 +18,55 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="{%url 'home'%}">MiRA</a>
     </div>
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li><a href='{% url "buildquery" %}'>Build Query</a></li>
-        <li><a href='{% url "managequeries" %}'>Manage Queries</a></li>
-        <li><a href='{% url "attributes" %}'>Attributes</a></li>
+        <li class="dropdown">
+          <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Project <b class='caret'></b></a>
+          <ul class='dropdown-menu'>
+            <li><a href='{% url "createProject" %}'>New</a></li>
+            <li><a href='{% url "chooseproject" %}'>Choose</a></li>
+            {%if is_project_admin %}<li><a href='{%url "manageProject"%}'>Manage</a></li>{%endif%}
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Query <b class='caret'></b></a>
+          <ul class='dropdown-menu'>
+            <li><a href='{% url "buildquery" %}'>New</a></li>
+            <li><a href='{% url "samplebasedquery" %}'>New from list</a></li>
+            {%if is_project_admin %}<li><a href='{%url "managequeries"%}'>Manage</a></li>{%endif%}
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Metadata <b class='caret'></b></a>
+          <ul class='dropdown-menu'>
+            <li><a href='{% url "attributes" %}'>Attributes</a></li>
+            <li><a href='{% url "analytics" %}'>Analytics</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Profiles <b class='caret'></b></a>
+          <ul class='dropdown-menu'>
+            <li><a href='{% url "area" %}'>Stacked Bars</a></li>
+            <li><a href='{% url "16sProfileBoxplot" %}'>Boxplot</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Analysis <b class='caret'></b></a>
+          <ul class='dropdown-menu'>
+            <li><a href='{% url "alpha" %}'>Alpha Diversity</a></li>
+            <li><a href='{% url "beta" %}'>Beta Diversity</a></li>
+            <li><a href='{% url "pca" %}'>PCA</a></li>
+          </ul>
+        </li>
+<!--        <li><a href='{% url "attributes" %}'>Attributes</a></li>
         <li><a href='{% url "area" %}'>Profiles</a></li>
         <li><a href='{% url "16sProfileBoxplot" %}'>Profile Boxplot</a></li>
         <li><a href='{% url "alpha" %}'>Alpha Diversity</a></li>
         <li><a href='{% url "beta" %}'>Beta Diversity</a></li>
         <li><a href='{% url "pca" %}'>PCA</a></li>
         <li><a href='{% url "analytics" %}'>Analytics</a></li>
+-->
         <li><a href='{% url "logout" %}'>Sign-out</a></li>
       </ul>
     </div><!--/.nav-collapse -->
@@ -42,7 +79,7 @@
     <div class="panel-heading">
       <h4 class="panel-title">
         <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-          Query
+          {{request.session.projectName}}
         </a>
       </h4>
     </div>
@@ -56,6 +93,14 @@
 </div>
 
 <div id='content'>
+{%if messages%}
+{%for message in messages%}
+<div class="clearfix text-center alert alert-{%if message.tags%}{{message.tags}}{%else%}info{%endif%}">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+    {{message}}
+</div>
+{%endfor%}
+{%endif%}
 {%block content %}
 {%endblock%}
 <div style='clear: both'></div>
@@ -67,7 +112,23 @@
 <script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
 <script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
 <script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
+<script>
+$(window).load(function() {
+  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
+  navWidth = parseInt($('.navbar-nav').css("width"));
+  contWidth = parseInt($('.navbar-collapse').css("width"));
+  padVal = (contWidth-navWidth)/2;
+  $('.navbar-nav').css('padding-left', padVal);
+});
 
+$(window).resize(function() {
+  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
+  navWidth = parseInt($('.navbar-nav').css("width"));
+  contWidth = parseInt($('.navbar-collapse').css("width"));
+  padVal = (contWidth-navWidth)/2;
+  $('.navbar-nav').css('padding-left', padVal);
+});
+</script>
 {%block js %}
 {%endblock%}
 </body>

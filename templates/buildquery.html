@@ -8,23 +8,67 @@
 {%endblock%}
 
 {%block content%}
+<ul class="nav nav-tabs">
+  <li class="active"><button class='btn btn-default' href="#attributestab" data-toggle="tab">Use metadata</button></li>
+  <li><button class='btn btn-default' href="#analysistab" data-toggle="tab">Use analysis</button></li>
+</ul>
+
 <h4>Only samples passing all filters will be included</h4>
-<form action="{%url 'buildquery'%}" method='POST'>{%csrf_token%}
-<table id='mytable'>
-<tr><td>Project</td><td><select name='project'>{%for project in projects%}<option value="{{project.id}}">{{project.name}}</option>{%endfor%}</select></td></tr>
-<tr><td>Query Name</td><td><input name='queryname'/></td></tr>
-<tbody class='filterblock'> 
-<tr><th colspan=2><hr></th></tr>
-<tr><td>Attribute</td><td><select name='attribute'></select></td></tr>
-<tr><td>Operator</td><td><select name='operator'></select></td></tr>
-<tr><td>Value</td><td><input name='filtervalue'/></td></tr>
-</tbody>
-</table>
-<button class='btn btn-default' type='button' id='addfilter'>Add another filter</button>
-<br>
-<br>
-<input class='btn btn-default' type='submit' value='Submit'/>
-</form>
+<div class='tab-content'>
+  <div class='tab-pane active' id="attributestab">
+    <form action="{%url 'buildquery'%}" method='POST'>{%csrf_token%}
+    <table id='mytable' align=center style="margin 0 auto;">
+    <tr><td>Project</td><td><input name='project' type='hidden' value="{{request.session.projectID}}"/>{{request.session.projectName}}</td></tr>
+    <tr><td>Query Name</td><td><input name='queryname'/></td></tr>
+    <tbody class='filterblock'> 
+    <tr><th colspan=2><hr></th></tr>
+    <tr><td>Attribute</td><td><select name='attribute'></select></td></tr>
+    <tr><td>Operator</td><td><select name='operator'></select></td></tr>
+    <tr><td>Value</td><td><input name='filtervalue'/></td></tr>
+    </tbody>
+    <tfoot>
+    <tr><th colspan=2><hr></th></tr>
+    <tr><td><button class='btn btn-default' type='button' id='addfilter'>Add another filter</button>
+    <br><br>
+    <input class='btn btn-default' type='submit' value='Submit'/></td></tr>
+    </tfoot>
+    </table>
+    </form>
+  </div>
+  <div class='tab-pane' id="analysistab">
+    <form action="{%url 'datasetquery'%}" method='POST'>{%csrf_token%}
+    <table align=center style="margin 0 auto;">
+    <tr><td>Project</td><td><input name='project' type='hidden' value="{{request.session.projectID}}"/>{{request.session.projectName}}</td></tr>
+    <tr><td>Query Name</td><td><input name='queryname'/></td></tr>
+    <tr><th colspan=2><hr></th></tr>
+    <tr><td>Dataset</td><td><select name='dataset'></select></td></tr>
+    <tr><td>Method</td><td><select name='method'></select></td></tr>
+    <tr><td>Category</td><td><select name='category'></select></td></tr>
+    <tbody class='attributeblock'> 
+    <tr><th colspan=2><hr></th></tr>
+    <tr><td>Taxa</td><td><select name='taxa'></select></td></tr>
+    <tr><td>Operator</td><td><select name='compare'>
+                               <option value="eq">=</option>
+                               <option value="ne">&ne;</option>
+                               <option value="gt">&gt;</option>
+                               <option value="gte">&ge;</option>
+                               <option value="lt">&lt;</option>
+                               <option value="lte">&le;</option>
+                             </select>
+                         </td></tr>
+    <tr><td>Value</td><td><input type='number' name='value'/></td></tr>
+    </tbody>
+    <tfoot>
+    <tr><th colspan=2><hr></th></tr>
+    <tr><td><button class='btn btn-default' type='button' id='attributefilter'>Add another filter</button>
+    <br>
+    <br>
+    <input class='btn btn-default' type='submit' value='Submit'/></td></tr>
+    </tfoot>
+    </table>
+    </form>
+  </div>
+</div>
 {%endblock%}
 
 
@@ -83,7 +127,14 @@ function updateattr(projectID) {
 
 $(document).ready(function() {
      operators = getops();
-     updateattr($('select[name=project]').val());     
+     updateattr($('[name=project]').val());     
+     var dataseturl = "{%url 'ListDatasets'%}?projectID={{request.session.projectID}}";
+     $.get(dataseturl, function(data) {
+       for(var i = 0; i < data.length; i++) {
+          $("select[name=dataset]").append("<option value=\""+ data[i] +"\">"+ data[i] +"</option>");
+       }
+       loadmethods();
+     });
 });
 
 $('select[name="project"]').change(function() {
@@ -98,13 +149,63 @@ $('#addfilter').click(function() {
      var element = $('.filterblock:first');
      var mytable = $('#mytable');
      var myclone = element.clone();
-     $(myclone).find('tr:last').append('<button type="button" class="dropfilter">Remove</button>');
-     mytable.append(myclone);
+     $(myclone).find('tr:last').append('<button class="btn btn-default dropfilter" type="button"><span class="glyphicon glyphicon-trash"></span> Remove</button>');
+     $(mytable).find('tbody:last').after(myclone);
      updateops($(myclone).closest('tbody'));
 });
 
 $('body').on('click', '.dropfilter', function() {
     $(this).closest('tbody').remove();
+});
+
+function loadmethods() {
+    $("select[name=method]").empty();
+    var dataset = $("select[name=dataset]").val();
+    var methodsurl = "{%url 'ListMethods'%}?projectID={{request.session.projectID}}&dataset="+dataset;
+    $.get(methodsurl, function(data) {
+       for(var i = 0; i < data.length; i++) {
+          $("select[name=method]").append("<option value=\""+ data[i] +"\">"+ data[i] +"</option>");
+       }
+       loadcategories();
+     });
+}
+
+function loadcategories() {
+    $("select[name=category]").empty();
+    var dataset = $("select[name=dataset]").val();
+    var method = $("select[name=method]").val();
+    var methodsurl = "{%url 'ListCategories'%}?projectID={{request.session.projectID}}&dataset="+dataset+"&method="+method;
+    $.get(methodsurl, function(data) {
+       for(var i = 0; i < data.length; i++) {
+          $("select[name=category]").append("<option value=\""+ data[i] +"\">"+ data[i] +"</option>");
+       }
+       loadtaxa();
+     });
+}
+
+function loadtaxa() {
+    $("select[name=taxa]").empty();
+    var dataset = $("select[name=dataset]").val();
+    var method = $("select[name=method]").val();
+    var category = $("select[name=category]").val();
+    var taxaurl = "{%url 'ListTaxa'%}?projectID={{request.session.projectID}}&dataset="+dataset+"&method="+method+"&category="+category;
+    $.get(taxaurl, function(data) {
+       for(var i = 0; i < data.length; i++) {
+          $("select[name=taxa]").append("<option value=\""+ data[i] +"\">"+ data[i] +"</option>");
+       }
+     });
+}
+
+$("select[name=dataset]").change(function() {loadmethods();});
+$("select[name=method]").change(function() {loadcategories();});
+$("select[name=category]").change(function() {loadtaxa();});
+
+$('#attributefilter').click(function() {
+     var element = $('.attributeblock:first');
+     var mytable = $(this).closest('table');
+     var myclone = element.clone();
+     $(myclone).find('tr:last').append('<button class="btn btn-default dropfilter" type="button"><span class="glyphicon glyphicon-trash"></span> Remove</button>');
+     $(mytable).find('tbody:last').after(myclone);
 });
 
 </script>

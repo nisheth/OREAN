@@ -8,30 +8,56 @@
 
 
 {%block content%}
+<!-- Nav tabs -->
+<ul class="nav nav-tabs">
+  <li class="active"><button class='btn btn-primary tabbutton' href="#myqueries" data-toggle="tab">My Queries</button></li>
+  <li><button href="#public" data-toggle="tab" class='btn btn-default tabbutton'>Public Queries</button></li>
+</ul>
 
-<table class='table'>
-<tr><th>Name</th><th>Description</th><th>Number of Samples</th><th>Shared</th><th>Owner</th><th>Actions</th></tr>
-{%for q in queries%}
-<tr>
-    <td>{{q.name}}</td>
-    <td>{%if q.description%}{{q.description}}{%else%}None{%endif%}</td>
-    <td>{{q.numsamples}}</td>
-    <td name='shared'>{{q.share}}</td>
-    <td>{{q.user}}</td>
-{%if q.user == request.user.username %}
-    <td><button class='sharebutton btn btn-default' type='button' rel={{q.project}} value="{{q.name}}">Switch Shared Status</button><button class='deletebutton btn btn-default' type='button' rel={{q.project}} value="{{q.name}}">Delete This Query</button></td>
-{%else%}
-    <td>Not Available</td>
-{%endif%}
-
-</tr>
-{%endfor%}
-</table>
-
+<!-- Tab panes -->
+<div class="tab-content">
+  <div class="tab-pane active" id="myqueries">
+    <table class='table' style='color:white'>
+      <tr><th>Name</th><th>Description</th><th>Number of Samples</th><th>Shared</th><th>Owner</th><th>Actions</th></tr>
+      {%for q in queries%}
+      <tr>
+          <td>{{q.name}}</td>
+          <td>{%if q.description%}{{q.description}}{%else%}None{%endif%}</td>
+          <td>{{q.numsamples}}</td>
+          <td name='shared'>{{q.share}}</td>
+          <td>{{q.user}}</td>
+          <td><button class='sharebutton btn btn-default' type='button' rel={{q.project}} value="{{q.name}}">Switch Shared Status</button><button class='deletebutton btn btn-default' type='button' rel={{q.project}} value="{{q.name}}">Delete This Query</button></td>
+      </tr>
+      {%endfor%}
+    </table>
+  </div>
+  <div class="tab-pane" id="public">
+    <table class='table' style='color:white'>
+      <tr><th>Name</th><th>Description</th><th>Number of Samples</th><th>Shared</th><th>Owner</th></tr>
+      {%for q in pubqueries%}
+      <tr>
+          <td>{{q.name}}</td>
+          <td>{%if q.description%}{{q.description}}{%else%}None{%endif%}</td>
+          <td>{{q.numsamples}}</td>
+          <td name='shared'>{{q.share}}</td>
+          <td>{{q.user}}</td>
+      </tr>
+      {%endfor%}
+    </table>
+  </div>
+</div>
 {%endblock%}
 
 {%block js%}
 <script>
+
+// highlights current tab
+$('.tabbutton').click(function() {
+	$('.tabbutton').addClass("btn-default"); 
+	$('.tabbutton').removeClass("btn-primary");
+	$(this).addClass("btn-primary"); 
+});
+
 $('.sharebutton').click(function() {
     var statuselement = $(this).closest('tr').find('td[name=shared]');
     var queryname = $(this).val();

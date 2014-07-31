@@ -6,20 +6,21 @@ from django.contrib import messages
 @csrf_protect
 def main(request):
     username = password = mynext = firstname = ''
-    mynext = request.GET.get('next') or 'home'
+    mynext = request.GET.get('next') or None
+    if mynext is None: mynext = 'chooseproject'
     if request.POST:
         username = request.POST.get('username')
         password = request.POST.get('password')
+        mynext = request.POST.get('next') or None
         user = authenticate(username=username, password=password)
-        mynext = request.POST.get('next') or 'home'
         if user is not None:
             if user.is_active:
                 login(request, user)
                 return redirect(mynext)
             else:
-                messages.add_message(request, messages.INFO, "This account is not allowed to log in.")
+                messages.add_message(request, messages.ERROR, "This account is not active. Please verify your account by visiting the URL provided in the registration email.")
         else:
-            messages.add_message(request, messages.INFO, "Your login credentials are incorrect.")
+            messages.add_message(request, messages.ERROR, "Your login credentials are incorrect.")
     params = {
         'username' : username,
         'firstname': firstname,

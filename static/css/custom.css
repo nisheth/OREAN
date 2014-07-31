@@ -62,3 +62,7 @@ div.selectmiddle {
     width: 5%;
     display: table-cell;
 }
+
+input, .black {
+  color: black !important;
+}

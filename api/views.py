@@ -43,7 +43,7 @@ class APIRoot(views.APIView):
             {'BuildDatasetQuery': reverse('BuildDatasetQuery', request=request)},
             {'DeleteQuery': reverse('DeleteQuery', request=request)},
             {'ShareQuery': reverse('ShareQuery', request=request)},
-            {'FastFetch': reverse('FastFetch', request=request)},
+            {'ListTaxa': reverse('ListTaxa', request=request)},
         ])
 
 # List Datasets
@@ -580,16 +580,22 @@ class ShareQuery(generics.ListAPIView):
             return Response(query.share)
         except: raise APIException("No query named '%s' in project '%s' for user '%s'" % (queryname,pid, request.user.username))
 
-class FastFetch(generics.ListAPIView):
+class ListTaxa(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, *args, **kwargs):
-        print request.GET.getlist('foo')
-        params = dict(request.GET)
-        queryset = internal.GetDataset(request, params=params)
-        header = ['project', 'sample', 'dataset', 'method', 'category', 'entity', 'numreads', 'profile', 'avgscore']
-        array = []
-        array.append(header)
-        for q in queryset:
-            tmp = [q.project.pk, q.sample, q.dataset, q.method, q.category, q.entity, q.numreads, q.profile, q.avgscore]
-            array.append(tmp)
-        return Response(array)
+        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        queryset = Analysis.objects.all()
+        try:
+            pid = int(request.QUERY_PARAMS.get('projectID', None))
+            dataset = request.QUERY_PARAMS.get('dataset', None)
+            method = request.QUERY_PARAMS.get('method', None)
+            category = request.QUERY_PARAMS.get('category', None)
+        except:
+            pid = None
+            dataset = None
+            method=None
+            category=None
+        if pid is not None and dataset is not None and method is not None and category is not None:
+            queryset = queryset.filter(project=pid, dataset=dataset, method=method, category=category).values_list('entity', flat=True).distinct().order_by('entity')
+            return Response(queryset)
+        raise APIException("Please Specify a projectID, dataset, method, and category as GET parameters")

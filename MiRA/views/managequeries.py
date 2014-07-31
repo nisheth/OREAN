@@ -9,6 +9,7 @@ import json
 def main(request):
     params = {}
     params['queries'] = []
+    params['pubqueries'] = []
     queries = myutils.call_api(request, 'ListQueries', params={'full': True})
     for q in queries:
          tmp = {}
@@ -18,7 +19,8 @@ def main(request):
          tmp['user'] = User.objects.get(pk=q['user_id']).username
          tmp['project'] = q['project_id']
          tmp['description'] = q['description']
-         params['queries'].append(tmp)
+         if request.user.username == tmp['user']: params['queries'].append(tmp)
+         else: params['pubqueries'].append(tmp)
     #if request.method=='POST':
     #    queryname = request.POST.get('query') or None
     #    attribute = request.POST.get('attribute') or 'Race'

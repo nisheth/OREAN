@@ -26,5 +26,5 @@ urlpatterns = patterns('',
     url(r'^BuildDatasetQuery/$', views.BuildDatasetQuery.as_view(), name='BuildDatasetQuery'),
     url(r'^DeleteQuery/$', views.DeleteQuery.as_view(), name='DeleteQuery'),
     url(r'^ShareQuery/$', views.ShareQuery.as_view(), name='ShareQuery'),
-    url(r'^FastFetch/$', views.FastFetch.as_view(), name='FastFetch'),
+    url(r'^ListTaxa/$', views.ListTaxa.as_view(), name='ListTaxa'),
 )
