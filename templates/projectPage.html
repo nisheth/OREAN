@@ -1,0 +1,22 @@
+{%extends "splash.html"%}
+
+{%block title%}MiRA: {{project.name}} Home{%endblock%}
+
+{%block content%}
+            <p class="lead">{{project.name}}</p>
+		<table class='table'>
+		<tr><th>Lead</th><td>{{project.user.get_full_name}}</td></tr>
+		<tr><th>Samples</th><td>{{samplecount}}</td></tr>
+		<tr><th>Attributes</th><td>{{attrcount}}</td></tr>
+		</table>
+            <p class="lead">
+              {%if user.is_authenticated and not member%}
+              <a href="{%url 'joinProject' project.invitecode%}" class="btn btn-lg btn-default">Join Project <span class="glyphicon glyphicon-ok"></span></a>
+              {%elif not user.is_authenticated %}
+              <a href="{%url 'joinProject' project.invitecode%}" class="btn btn-lg btn-default">Join Project <span class="glyphicon glyphicon-ok"></span></a>
+              <a href="{%url 'registerNewUser'%}?token={{project.invitecode}}" class="btn btn-lg btn-default">Sign up <span class="glyphicon glyphicon-pencil"></span></a>
+	      {%else%}
+              <a href="{%url 'logout'%}" class="btn btn-lg btn-default">Sign out <span class="glyphicon glyphicon-log-out"></span></a>
+              {%endif%}
+            </p>
+{%endblock%}

@@ -3,8 +3,10 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from . import myutils
 import json
+from MiRA.decorators import *
 
 @login_required
+@activeproject
 def main(request):
     params = {}
     params['queries'] = myutils.call_api(request, 'ListQueries')

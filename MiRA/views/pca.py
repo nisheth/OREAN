@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from MiRA.decorators import *
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 import myutils
@@ -8,6 +9,7 @@ import os
 from api import internal
 
 @login_required
+@activeproject
 def main(request):
     params = {}
     params['queries'] = myutils.call_api(request, 'ListQueries')

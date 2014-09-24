@@ -8,18 +8,36 @@
 
 
 {%block content%}
+    {%if projectlead %}<button class="btn btn-default pull-right" data-toggle="modal" data-target="#changelead">Change project lead</button>{%endif%}
     <button class="btn btn-default pull-right" data-toggle="modal" data-target="#myModal">Add project member</button>
     <table class='table' style='color:white'>
-      <tr><th>Member Name</th><th>Email</th><th>Project Admin</th><th>Actions</th></tr>
+      <tr><th>Member Name</th><th>Email</th><th>Project Manager</th><th>Actions</th></tr>
+
+      {%for user in projectadmins%}
+      <tr{%if user == project.user%} class='info text-info'{%endif%}>
+          <td>{{user.get_full_name}}</td>
+          <td>{{user.email}}</td>
+          <td class='projManage'>True</td>
+          <td>{%if not user.is_superuser%}<button class='removebutton btn btn-default' type='button' value="{{q.id}}">Remove from project</button>{%else%}-- site administrator --{%endif%}</td>
+      </tr>
+      {%endfor%}
+
       {%for q in project_members%}
-      <tr>
-          <td>{{q.user.first_name}} {{q.user.last_name}}</td>
+      <tr{%if q.user == project.user%} class='info black'{%endif%}>
+          <td>{{q.user.get_full_name}}</td>
           <td>{{q.user.email}}</td>
           <td class='projManage'>{{q.manager}}</td>
           <td><button class='removebutton btn btn-default' type='button' value="{{q.id}}">Remove from project</button><button class='promotebutton btn btn-default' type='button' value="{{q.id}}">Give Manager Status</button></td>
       </tr>
       {%endfor%}
     </table>
+
+    <div class='text-center'><div style='display: inline-block; margin: 0 auto;'><label class='checkbox'><input class='publictoggle' type='checkbox' {%if project_members.0.project.public%} checked{%endif%}/> This project is public</label></div></div>
+    <div class='text-center'>
+      <div class='well black' style='display: inline-block; margin: 0 auto;'>Project URL:<br><a href='http://{{ request.get_host }}{%url 'projectPage' project_members.0.project.invitecode %}'>http://{{ request.get_host }}{%url 'projectPage' project_members.0.project.invitecode %}</a><br>
+        <small>*If your project is set as public, providing this URL to colleagues<br>will allow them to register and join this project.<br>For private projects, this URL is only accessible to registered project members.</small>
+      </div>
+    </div>
 
 <!-- Modal -->
 <div class="modal fade black" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -31,10 +49,33 @@
         <h4 class="modal-title" id="myModalLabel">Add a user to this project</h4>
       </div>
       <div class="modal-body">
-        {{form}}
+        {{adduserform}}
       </div>
       <div class="modal-footer">
         <p>Registered accounts will be added to the project.</p><p>Unknown accounts will receive an invitation to sign up.</p>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <input type="submit" class="btn btn-primary" value="Submit"/>
+      </div>
+    </div>
+  </div>
+  </form>
+</div>
+
+
+<!-- Change Lead Modal -->
+<div class="modal fade black" id="changelead" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <form method="POST" action="{%url 'manageProject'%}"> {%csrf_token%}
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Change the lead for this project</h4>
+      </div>
+      <div class="modal-body">
+        {{changeleadform}}
+      </div>
+      <div class="modal-footer">
+        <p>Only registered project managers can be granted the lead role.</p>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         <input type="submit" class="btn btn-primary" value="Submit"/>
       </div>
@@ -70,6 +111,17 @@ $('.removebutton').click(function() {
         $(element).closest('tr').remove();
       });
     }
+});
+
+$('.publictoggle').click(function() {
+      $.post("{%url 'manageProject'%}", "csrfmiddlewaretoken={{csrf_token}}&action=togglePublic", function (data) {
+	html = '<div class="alert alert-info alert-dismissible text-center publicstatus" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> Your project is now ';
+	if (data) {html+='public'}
+	else {html+='private'}
+	html+="</div>";
+	$('.publicstatus').remove();
+	$('.messagebin').prepend(html);
+      });
 });
 </script>
 {%endblock%}

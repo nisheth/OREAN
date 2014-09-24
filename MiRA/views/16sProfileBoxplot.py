@@ -8,6 +8,7 @@ import os
 from api import internal
 from MiRA.views import SCRIPTPATH
 from operator import itemgetter
+from MiRA.decorators import *
 
 def isfloat(value):
   try:
@@ -17,6 +18,7 @@ def isfloat(value):
     return False
 
 @login_required
+@activeproject
 def main(request):
     CUTOFF=20
     params = {}

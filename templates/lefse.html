@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{%block title%}LEfSe{%endblock%}
+
+{%block sidebar%}
+    <h2>LEfSe Analysis</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form id='dataform' action='{%url "lefse"%}' method='get'>{%csrf_token%}
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+    </form>
+    <button id='plotrender'>View</button>
+{%endblock%}
+
+{%block content%}
+<div id='chart' style="min-height: 100%"></div>
+{%endblock%}
+
+{%block js%}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script>
+function loadchart(data, cats) {
+	$('#chart').highcharts({
+	        chart: {
+	            type: 'bar'
+	        },
+	        title: {
+	            text: 'LEfSe Significant LDA Scores'
+	        },
+	        subtitle: {
+	            text: '<a href="http://www.ncbi.nlm.nih.gov/pubmed/21702898" target="_blank">LEfSe Publication</a>',
+		    style: { "color": "blue" },
+		    useHTML: true,
+	        },
+	        xAxis: {
+	            categories: cats,
+	            title: {
+	                text: null
+	            }
+	        },
+	        yAxis: {
+	            title: {
+	                text: 'LDA Score',
+	                align: 'high'
+	            },
+	            labels: {
+	                overflow: 'justify'
+	            }
+	        },
+	        plotOptions: {
+	            bar: {
+	                dataLabels: {
+	                    enabled: true
+	                },
+			events: {
+                	    legendItemClick: function () {
+                	        return false 
+                	    },
+            		},
+	            },
+	        },
+		tooltip: {
+		    enabled: false,
+		},
+	        legend: {
+	            layout: 'vertical',
+	            align: 'right',
+	            verticalAlign: 'top',
+	            floating: true,
+	            borderWidth: 1,
+	            backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
+	            shadow: true
+	        },
+	        credits: {
+	            enabled: false
+	        },
+	        series: data, 
+	});
+}
+
+
+var chartdata = [];
+var classes = {};
+var categories = [];
+$("#plotrender").click(function() {
+    $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
+    form = $("#dataform");
+    $.ajax({
+        type: form.attr('method'),
+        url: form.attr('action'),
+        data: form.serialize()+"&format=json",
+        dataType: 'json',
+        success: function (data) {
+	    chartdata = [];
+	    classes = {};
+	    categories = [];
+            $("#content").find("table").empty();
+            if (data.msg) {
+		$(".messagebin").prepend("<div class='clearfix text-center alert alert-success' style='width:auto;'><button type='button' class='close' data-dismiss='alert'>&times;</button>"+data.msg+"</div>");
+	    }
+	    if (data.data) {
+                myhtml = "<table class='table'><th>Entity</th><th>Log Max Mean</th><th>Class</th><th>LDA Score</th><th>p-Value</th>";
+                lines = data.data.split("\n");
+		$.each(lines, function(i,row) {
+			var cols = row.split("\t");
+                        if (Boolean(cols[2])) {
+				if (!(cols[2] in classes)) {
+					classes[cols[2]] = chartdata.length;
+					chartdata.push({"name": cols[2], "data": []});
+				} 
+				//categories.push(cols[0]);
+				chartdata[0]["data"].push({"entity": cols[0], "y":parseFloat(cols[3]), "color": Highcharts.getOptions().colors[classes[cols[2]]]});
+				myhtml+="<tr>";
+				$.each(cols, function(j,field) {
+					myhtml+="<td>"+field+"</td>";
+				});
+				myhtml+="</tr>";
+			}
+		});
+                chartdata[0].data.sort(function(a,b) {
+			if (a.color > b.color){return 1;}
+			if (a.color < b.color){return -1;}
+			return 0;
+		});
+                for (var j = 0; j<chartdata[0].data.length; j++) {
+			categories.push(chartdata[0].data[j].entity);
+		}
+		myhtml+="</table>";
+		$("#content").append(myhtml);
+		loadchart(chartdata, categories);
+	    }
+        },
+        complete: function() {    
+            $("#content").unblock();  
+        },
+    });
+});
+</script>
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
+{%endblock%}

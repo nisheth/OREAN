@@ -1,5 +1,6 @@
 from django import forms
 from django.forms.util import ErrorList
+from django.db.models import Q
 from api.models import *
 
 class registerNewUserForm(forms.Form):
@@ -8,6 +9,7 @@ class registerNewUserForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={'type': 'email'}))
     choose_password = forms.CharField(widget=forms.PasswordInput())
     verify_password = forms.CharField(widget=forms.PasswordInput())
+    token = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     # custom validation to require matching password fields
     def clean(self):
@@ -37,9 +39,22 @@ class resetPasswordForm(forms.Form):
 class newProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['name', 'public', 'user']
-        widgets = {'user': forms.HiddenInput()}
+        fields = ['name', 'public', 'user', 'invitecode']
+        widgets = {'user': forms.HiddenInput(), 'invitecode': forms.HiddenInput()}
 
 class addUserToProjectForm(forms.Form):
     user_email = forms.EmailField(widget=forms.TextInput(attrs={'type': 'email'}))
     action = forms.CharField(widget=forms.HiddenInput())
+
+class changeProjectLeadForm(forms.Form):
+    Project_lead =forms.ModelChoiceField(User.objects.filter(is_superuser=True))
+    action = forms.CharField(widget=forms.HiddenInput(), initial='changeLead')
+
+    def __init__(self, *args, **kwargs):
+        project = kwargs.pop('project', None)
+        super(changeProjectLeadForm, self).__init__(*args, **kwargs)
+
+        if project:
+            self.fields['Project_lead'].queryset = User.objects.filter(Q(is_superuser=True)|Q(userproject__manager=True, userproject__project=project)).distinct() 
+        self.fields['Project_lead'].label_from_instance = lambda obj: "%s" % obj.get_full_name()
+

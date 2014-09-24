@@ -105,6 +105,7 @@ function runajax(form, chart) {
             data: form.serialize()+"&format=json",
             dataType: 'json',
             success: function (data) {
+                console.log(data);
                 mycontent  = "<h2>Query: "+$('select[name=query]', form).val()+"</h2><br>";
                 chart.html(mycontent+'<svg></svg>');
                 highchartsload(data);

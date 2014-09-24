@@ -3,10 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from api.models import *
 from MiRA.forms import *
-
+import os, hashlib
 @login_required
 def main(request):
-    form = newProjectForm(initial={'user': request.user})
+    form = newProjectForm(initial={'user': request.user, 'invitecode': hashlib.sha1(os.urandom(128)).hexdigest()})
     if request.method == 'POST':
        form = newProjectForm(request.POST)
        if form.is_valid():

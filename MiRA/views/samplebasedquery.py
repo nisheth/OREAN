@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
+from MiRA.decorators import *
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from . import myutils
 import json
 
 @login_required
+@activeproject
 def main(request):
     params = {}
     params['projects'] = myutils.call_api(request, 'ListProjects')

@@ -1,0 +1,114 @@
+{% extends "base.html"%}
+
+{%block title%}Merge Queries{%endblock%}
+
+{%block sidebar%}
+<h2>Merge Queries</h2>
+{%endblock%}
+
+
+{%block content%}
+<form class="form-horizontal" role="form" action="{%url 'samplebasedquery'%}" method='post'>{%csrf_token%}
+<div style='width: 100%'>
+  <input type='hidden' name='project' value='{{request.session.projectID}}'>
+  <div id='querylist' style='width:800px; margin: 0 auto;'>
+   
+    <p class='text-center'> 
+    <label class="radio-inline">
+      <input type="radio" name="mergetype" id="mergetype1" class='queryselection' value="inclusive" checked> Include samples from any selection
+    </label>
+    <label class="radio-inline">
+      <input type="radio" name="mergetype" id="mergetype2" class='queryselection' value="exclusive"> Include only samples in all selections
+    </label>
+    </p>
+    <div class='alert alert-info text-center' role='alert'>Samples in current selection <u><b><em id='samplecount'>N</em></b></u></div>
+    <hr>
+
+  <div class="form-group">
+    <label for="queryname" class="col-sm-2 control-label">Name</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" name="queryname" placeholder="New Query Name">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="querydescription" class="col-sm-2 control-label">Description</label>
+    <div class="col-sm-10">
+      <textarea class="form-control" name='querydescription' rows="3" placeholder='Description of New Query'></textarea>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-default">Submit</button>
+    </div>
+  </div>
+
+  </div>
+</div>
+</form>
+{%endblock%}
+
+{%block js%}
+<script>
+samplecount = 0;
+samplesarray = {};
+kept = new Array(); 
+$(document).ready(function() {
+	$.ajax({
+          url: "{%url 'ListQueries'%}?projectID={{request.session.projectID}}&full=True",
+          
+        }).success(function(data) {
+      		element = document.getElementById("querylist");
+		html = "<ul class='list-group'>";
+		for (i in data) {
+			html+="<li class='list-group-item black'><label class='checkbox-inline'><input type='checkbox' class='queryselection inputbox' value='"+data[i].name+"'> "+data[i].name+"</label><a href='#' class='badge'><em>"+data[i]["number of samples"]+"</em> samples<span class='dropdown carettoggle'><span class='caret'></span></a></li>";
+			html+="<li style='display:none' class='list-group-item list-group-item-info black'><b>Description:</b> "+data[i].description+"</li>";
+			samplesarray[data[i].name] = data[i].results.split(",");
+		}    
+		html+="</ul>";
+		$(element).prepend(html);
+		$("#samplecount").html(samplecount);
+        });
+});
+
+
+$(document.body).on('click', '.queryselection', function(){
+	samplecount = 0;
+	first = true;
+	kept.length = 0;
+	var selected = $('.list-group input:checked');
+	if (selected.length == 0) {$("#samplecount").html(samplecount); return;}
+	$(selected).each(function (index, element) {
+		tmp = samplesarray[$(element).val()].slice(0);
+		mt = $('[name=mergetype]:checked').val();
+		if ((mt == 'inclusive') || (selected.length == 1) || (first)) {
+			first = false;
+			for ( i in tmp) {
+				myindex = $.inArray(tmp[i], kept);
+				found = myindex > -1;
+				if (! found ) {kept.push(tmp[i]);} // add tmp[i] to kept
+			}
+		} else {
+			i = kept.length;
+			while (i--) {
+                                myindex = $.inArray(kept[i], tmp);
+                                found = myindex > -1;
+				if ( (!found) ) { kept.splice(i, 1);}
+			}
+		}
+	});
+	samplecount = kept.length;
+	$('[name=sampleslist]').remove();
+	html="<textarea style='visibility:hidden' name='sampleslist'>"+kept.join('\n')+"</textarea>";
+	$('form').append(html);
+	$("#samplecount").html(samplecount);
+});
+
+
+$(document.body).on('click', '.badge', function(){
+	$(this).closest('li').next('li').toggle();
+	$(this).find('.carettoggle').toggleClass('dropdown dropup');
+	$(this).toggleClass('alert-info');
+	$(this).toggleClass('black');
+});
+</script>
+{%endblock%}

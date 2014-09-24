@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from MiRA.decorators import *
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -6,6 +7,7 @@ from . import myutils
 import json
 
 @login_required
+@activeproject
 def main(request):
     params = {}
     params['queries'] = []

@@ -3,8 +3,10 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from . import myutils
 import json
+from MiRA.decorators import *
 
 @login_required
+@activeproject
 def main(request):
     params = {}
     params['projects'] = myutils.call_api(request, 'ListProjects')
@@ -43,6 +45,8 @@ def main(request):
         return redirect('managequeries')
     return render(request, 'buildquery.html', params)
 
+@login_required
+@activeproject
 def dataset(request):
     if request.method=='POST':
         projectID = int(request.POST.get('project'))
@@ -68,3 +72,8 @@ def dataset(request):
         finalquery = myutils.call_api(request, 'BuildDatasetQuery', params=args)
         return redirect('managequeries')
     return redirect('buildquery')
+
+@login_required
+@activeproject
+def merge(request):
+    return render(request, "mergequeries.html")

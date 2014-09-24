@@ -4,7 +4,7 @@ import urllib2
 import urllib
 import traceback
 import json
-import subprocess
+import os,subprocess
 from MiRA.views import SCRIPTPATH
 from api.models import *
 from django.db.models import Max, Avg
@@ -43,6 +43,19 @@ def runPerl(script, file):
     out, err = p.communicate()
     print out
     return out
+
+def runPython(script, file, args=None):
+    try:
+        cmd = ['python', SCRIPTPATH+'misc/'+script, file]
+        if args: cmd+=args
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        return out
+    except:
+        return "%s" % traceback.format_exc()
+
+def runCmd(cmd):
+    return os.system(cmd)
 
 def runC(script, file):
     cmd = [SCRIPTPATH+'c/'+script, file]

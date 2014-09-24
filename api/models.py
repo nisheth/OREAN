@@ -7,6 +7,15 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
+class GetOrNoneManager(models.Manager):
+    """Adds get_or_none method to objects
+    """
+    def get_or_none(self, **kwargs):
+        try:
+            return self.get(**kwargs)
+        except self.model.DoesNotExist:
+            return None
+
 @receiver(post_save, sender=get_user_model())
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
@@ -27,6 +36,7 @@ class Project(models.Model):
     name=models.CharField(max_length=255, unique=True)
     public=models.BooleanField(default=False)
     user=models.ForeignKey(User)
+    invitecode = models.CharField(max_length=40, unique=True)
 
     def __unicode__(self):
        return "%s" % self.name
@@ -114,3 +124,8 @@ class Invitations(models.Model):
     project = models.ForeignKey(Project)
     user = models.ForeignKey(User)
     timedate = models.DateTimeField(auto_now_add=True)
+
+class ActiveProject(models.Model):
+    user = models.ForeignKey(User, unique=True)
+    project = models.ForeignKey(Project)
+    objects = GetOrNoneManager()

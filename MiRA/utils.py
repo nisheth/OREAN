@@ -32,3 +32,8 @@ def send_new_email(request, to_address, subject, message):
                fail_silently=False)
   except:
      messages.add_message(request, messages.ERROR, "An error occurred when attempting to send an email.")
+
+def in_project(user, p):
+     if not user.is_authenticated(): return False
+     if user.is_superuser or UserProject.objects.filter(project=p, user=user).exists(): return True
+     return False

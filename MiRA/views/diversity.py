@@ -7,8 +7,10 @@ import time
 import os
 from api import internal
 from MiRA.views import SCRIPTPATH
+from MiRA.decorators import *
 
 @login_required
+@activeproject
 def alpha(request):
     params = {}
     params['queries'] = myutils.call_api(request, 'ListQueries')
@@ -57,6 +59,7 @@ def alpha(request):
     return render(request, 'alpha.html', params)
 
 @login_required
+@activeproject
 def beta(request):
     params = {}
     params['queries'] = myutils.call_api(request, 'ListQueries')

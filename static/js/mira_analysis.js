@@ -23,7 +23,7 @@ function loaddataset() {
     if (projectID) {
         $.ajax({
             type: 'GET',
-            url: "/mira/api/ListDatasets/",
+            url: "/api/ListDatasets/",
             data: "projectID="+projectID+"&format=json",
             dataType: 'json',
             async: false,
@@ -49,7 +49,7 @@ function loadmethods() {
     if (dataset && projectID) {
         $.ajax({
             type: 'GET',
-            url: "/mira/api/ListMethods/",
+            url: "/api/ListMethods/",
             data: "projectID="+projectID+"&dataset="+dataset+"&format=json",
             dataType: 'json',
             async: false,
@@ -76,7 +76,7 @@ function loadcategories() {
     if (dataset && projectID && method) {
         $.ajax({
             type: 'GET',
-            url: "/mira/api/ListCategories/",
+            url: "/api/ListCategories/",
             data: "projectID="+projectID+"&dataset="+dataset+"&method="+method+"&format=json",
             dataType: 'json',
             async: false,

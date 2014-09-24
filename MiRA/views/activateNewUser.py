@@ -15,7 +15,7 @@ def main(request, token=None):
       invObjs = Invitations.objects.filter(email=myuser.email)
       if invObjs.exists():
           for invObj in invObjs:
-              if not UserProject.objects.filter(user=myuser, project=invObj.project).exists: 
+              if not UserProject.objects.filter(user=myuser, project=invObj.project).exists(): 
                   newAccessObj = UserProject(user=myuser, project=invObj.project)
                   newAccessObj.save()
       messages.add_message(request, messages.SUCCESS, "Your account has been activated.")

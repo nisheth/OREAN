@@ -9,8 +9,8 @@
 
 {%block content%}
 <ul class="nav nav-tabs">
-  <li class="active"><button class='btn btn-default' href="#attributestab" data-toggle="tab">Use metadata</button></li>
-  <li><button class='btn btn-default' href="#analysistab" data-toggle="tab">Use analysis</button></li>
+  <li class="active"><button class='btn btn-primary tabbutton' href="#attributestab" data-toggle="tab">Use metadata</button></li>
+  <li><button class='btn btn-default tabbutton' href="#analysistab" data-toggle="tab">Use analysis</button></li>
 </ul>
 
 <h4>Only samples passing all filters will be included</h4>
@@ -74,6 +74,15 @@
 
 {%block js %}
 <script>
+
+// highlights current tab
+$('.tabbutton').click(function() {
+        $('.tabbutton').addClass("btn-default"); 
+        $('.tabbutton').removeClass("btn-primary");
+        $(this).removeClass("btn-default");
+        $(this).addClass("btn-primary"); 
+});
+
 var operators;
 var attrs;
 
