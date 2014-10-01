@@ -17,7 +17,7 @@
 <div class='tab-content'>
   <div class='tab-pane active' id="attributestab">
     <form action="{%url 'buildquery'%}" method='POST'>{%csrf_token%}
-    <table id='mytable' align=center style="margin 0 auto;">
+    <table id='mytable' class='white' align=center style="margin 0 auto;">
     <tr><td>Project</td><td><input name='project' type='hidden' value="{{request.session.projectID}}"/>{{request.session.projectName}}</td></tr>
     <tr><td>Query Name</td><td><input name='queryname'/></td></tr>
     <tbody class='filterblock'> 
@@ -37,7 +37,7 @@
   </div>
   <div class='tab-pane' id="analysistab">
     <form action="{%url 'datasetquery'%}" method='POST'>{%csrf_token%}
-    <table align=center style="margin 0 auto;">
+    <table align=center class='white' style="margin 0 auto;">
     <tr><td>Project</td><td><input name='project' type='hidden' value="{{request.session.projectID}}"/>{{request.session.projectName}}</td></tr>
     <tr><td>Query Name</td><td><input name='queryname'/></td></tr>
     <tr><th colspan=2><hr></th></tr>

@@ -26,6 +26,7 @@ def main(request):
     form = addUserToProjectForm(initial={'action': 'addUser'})
     if 'projectID' not in request.session: return redirect("chooseproject")
     project = Project.objects.get(pk=request.session['projectID'])
+    params['project'] = project
     form2 = changeProjectLeadForm(project=project, initial={'Project_lead': project.user.pk})
     if request.method == 'POST':
        form = addUserToProjectForm(request.POST)

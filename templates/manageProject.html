@@ -32,9 +32,9 @@
       {%endfor%}
     </table>
 
-    <div class='text-center'><div style='display: inline-block; margin: 0 auto;'><label class='checkbox'><input class='publictoggle' type='checkbox' {%if project_members.0.project.public%} checked{%endif%}/> This project is public</label></div></div>
+    <div class='text-center'><div style='display: inline-block; margin: 0 auto;'><label class='checkbox'><input class='publictoggle' type='checkbox' {%if project.public%} checked{%endif%}/> This project is public</label></div></div>
     <div class='text-center'>
-      <div class='well black' style='display: inline-block; margin: 0 auto;'>Project URL:<br><a href='http://{{ request.get_host }}{%url 'projectPage' project_members.0.project.invitecode %}'>http://{{ request.get_host }}{%url 'projectPage' project_members.0.project.invitecode %}</a><br>
+      <div class='well black' style='display: inline-block; margin: 0 auto;'>Project URL:<br><a href='https://{{ request.get_host }}{%url 'projectPage' project.invitecode %}'>https://{{ request.get_host }}{%url 'projectPage' project.invitecode %}</a><br>
         <small>*If your project is set as public, providing this URL to colleagues<br>will allow them to register and join this project.<br>For private projects, this URL is only accessible to registered project members.</small>
       </div>
     </div>

@@ -53,7 +53,7 @@ def main(request):
         for row in pca:
             cols = row.split(',')
             sample = cols[0]
-            if sample[0] == 'X': sample = sample[1:]
+            #if sample[0] == 'X': sample = sample[1:]
             xy = [float(cols[1]), float(cols[2])]
             if len(datahash[sample]['query']) > 1: finaldata[2]['data'].append(xy)
             elif querynames[0] in datahash[sample]['query']: finaldata[0]['data'].append(xy)

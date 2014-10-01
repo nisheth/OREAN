@@ -63,6 +63,10 @@ div.selectmiddle {
     display: table-cell;
 }
 
-input, .black {
+input, textarea, .black {
   color: black !important;
+}
+
+.white {
+  color: white !important;
 }

@@ -25,30 +25,43 @@
               <h3 class="masthead-brand">MiRA</h3>
               <ul class="nav masthead-nav">
                 <li class="dropdown text-left">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Projects <b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="{%url 'createProject'%}">New</a></li>
-                    <li><a href="{%url 'chooseproject'%}">Choose</a></li>
+                  <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Project <b class='caret'></b></a>
+                  <ul class='dropdown-menu'>
+                    <li><a href='{% url "createProject" %}'>New</a></li>
+                    <li><a href='{% url "chooseproject" %}'>Choose</a></li>
+                    {%if is_project_admin %}<li><a href='{%url "manageProject"%}'>Manage</a></li>{%endif%}
                   </ul>
                 </li>
                 <li class="dropdown text-left">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Queries <b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="{%url 'buildquery'%}">Build</a></li>
-                    <li><a href="{%url 'managequeries'%}">Manage</a></li>
+                  <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Query <b class='caret'></b></a>
+                  <ul class='dropdown-menu'>
+                    <li><a href='{% url "buildquery" %}'>New</a></li>
+                    <li><a href='{% url "samplebasedquery" %}'>New from list</a></li>
+                    <li><a href='{%url "managequeries"%}'>Manage</a></li>
+                    <li><a href='{% url "mergequery" %}'>Merge</a></li>
                   </ul>
                 </li>
                 <li class="dropdown text-left">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Analysis <b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="{%url 'attributes'%}">Attributes</a></li>
-                    <li><a href='{% url "area" %}'>Profiles</a></li>
-                    <li><a href='{% url "16sProfileBoxplot" %}'>Profile Distributions</a></li>
+                  <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Metadata <b class='caret'></b></a>
+                  <ul class='dropdown-menu'>
+                    <li><a href='{% url "attributes" %}'>Attributes</a></li>
+                    <li><a href='{% url "analytics" %}'>Analytics</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown text-left">
+                  <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Profiles <b class='caret'></b></a>
+                  <ul class='dropdown-menu'>
+                    <li><a href='{% url "area" %}'>Stacked Bars</a></li>
+                    <li><a href='{% url "16sProfileBoxplot" %}'>Boxplot</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown text-left">
+                  <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Analysis <b class='caret'></b></a>
+                  <ul class='dropdown-menu'>
                     <li><a href='{% url "alpha" %}'>Alpha Diversity</a></li>
                     <li><a href='{% url "beta" %}'>Beta Diversity</a></li>
                     <li><a href='{% url "lefse" %}'>LEfSe</a></li>
                     <li><a href='{% url "pca" %}'>PCA</a></li>
-                    <li><a href='{% url "analytics" %}'>Analytics</a></li>
                   </ul>
                 </li>
               </ul>

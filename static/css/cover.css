@@ -175,7 +175,7 @@ table {
    border-spacing: 0 5px;
 }
 
-input, .black {
+input, textarea, .black {
   color: black !important;
 }
 
