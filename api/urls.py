@@ -27,4 +27,5 @@ urlpatterns = patterns('',
     url(r'^DeleteQuery/$', views.DeleteQuery.as_view(), name='DeleteQuery'),
     url(r'^ShareQuery/$', views.ShareQuery.as_view(), name='ShareQuery'),
     url(r'^ListTaxa/$', views.ListTaxa.as_view(), name='ListTaxa'),
+    url(r'^PullAttributeValues/$', views.PullAttributeValues.as_view(), name='PullAttributeValues'),
 )

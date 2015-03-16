@@ -4,10 +4,15 @@
 
 {%block content%}
             <p class="lead">{{project.name}}</p>
-		<table class='table'>
+		<table class='table white'>
 		<tr><th>Lead</th><td>{{project.user.get_full_name}}</td></tr>
-		<tr><th>Samples</th><td>{{samplecount}}</td></tr>
-		<tr><th>Attributes</th><td>{{attrcount}}</td></tr>
+                {%if project.is_timecourse %}
+		<tr><th>Subjects</th><td>{{subjectcount}}</td></tr>
+		<tr><th>Visits</th><td>{{visitcount}}</td></tr>
+                {%endif%}
+		<tr><th>Samples with analysis</th><td>{{samplecount}}</td></tr>
+		<tr><th>Samples with metadata</th><td>{{samplecountmeta}}</td></tr>
+		<tr><th>Metadata fields</th><td>{{attrcount}}</td></tr>
 		</table>
             <p class="lead">
               {%if user.is_authenticated and not member%}

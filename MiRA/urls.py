@@ -19,14 +19,17 @@ urlpatterns = patterns('',
     url(r'^$', 'MiRA.views.home.main', name='home'),
     url(r'^attributes', 'MiRA.views.attributes.main', name='attributes'),
     url(r'^16sProfileBoxplot', 'MiRA.views.16sProfileBoxplot.main', name='16sProfileBoxplot'),
+    url(r'^stackedbars', 'MiRA.views.stackedbars.main', name='stackedbars'),
     url(r'^area', 'MiRA.views.area.main', name='area'),
     url(r'^analytics', 'MiRA.views.analytics.main', name='analytics'),
     url(r'^createProject', 'MiRA.views.createProject.main', name='createProject'), 
     url(r'^joinProject/(?P<invitecode>\w{40})', 'MiRA.views.joinProject.main', name='joinProject'), 
     url(r'^project/(?P<invitecode>\w{40})', 'MiRA.views.projectPage.main', name='projectPage'), 
+    url(r'^diversity/alpha2', 'MiRA.views.diversity.alpha2', name='alpha2'),
     url(r'^diversity/alpha', 'MiRA.views.diversity.alpha', name='alpha'),
     url(r'^diversity/beta', 'MiRA.views.diversity.beta', name='beta'),
     url(r'^pca$', 'MiRA.views.pca.main', name='pca'),
+    url(r'^lefse2', 'MiRA.views.lefse2.main', name='lefse2'),
     url(r'^lefse', 'MiRA.views.lefse.main', name='lefse'),
     url(r'^query/build', 'MiRA.views.buildquery.main', name='buildquery'),
     url(r'^query/merge', 'MiRA.views.buildquery.merge', name='mergequery'),
@@ -41,4 +44,15 @@ urlpatterns = patterns('',
     url(r'^activateNewUser/(?P<token>\w{32})/$', 'MiRA.views.activateNewUser.main', name='activateNewUser'),
     url(r'requestPasswordReset', 'MiRA.views.resetPassword.requestReset', name='requestReset'),
     url(r'resetPassword/(?P<token>\w{32})/$', 'MiRA.views.resetPassword.main', name='resetPassword'),
+    url(r'timecourse/table', 'MiRA.views.timecourse.viewTimecourseInTable', name='timecourseTable'),
+
+    # sample report urls
+    url(r'sample/report', 'MiRA.views.samplereport.main', name='samplereport'),
+    url(r'sample/fetch', 'MiRA.views.samplereport.fetchdata', name='fetchsampledata'),
+    url(r'sample/krona', 'MiRA.views.samplereport.krona', name='krona'),
+
+    # file upload
+    url(r'upload/taxa', 'api.uploads.taxa.main', name='uploadTaxa'),
+    url(r'upload/analysis', 'api.uploads.analysis.main', name='uploadAnalysis'),
+
 )

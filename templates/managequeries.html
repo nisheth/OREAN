@@ -18,11 +18,15 @@
 <div class="tab-content">
   <div class="tab-pane active" id="myqueries">
     <table class='table' style='color:white'>
-      <tr><th>Name</th><th>Description</th><th>Number of Samples</th><th>Shared</th><th>Owner</th><th>Actions</th></tr>
+      <tr><th>Name</th><th>Description</th>{%if request.session.projectTimecourse%}<th>Subjects</th><th>Visits</th>{%endif%}<th>Samples</th><th>Shared</th><th>Owner</th><th>Actions</th></tr>
       {%for q in queries%}
       <tr>
           <td>{{q.name}}</td>
           <td>{%if q.description%}{{q.description}}{%else%}None{%endif%}</td>
+          {%if request.session.projectTimecourse%}
+          <td>{{q.numsubjects}}</td>
+          <td>{{q.numvisits}}</td>
+          {%endif%}
           <td>{{q.numsamples}}</td>
           <td name='shared'>{{q.share}}</td>
           <td>{{q.user}}</td>

@@ -51,7 +51,6 @@
 <script>
 samplecount = 0;
 samplesarray = {};
-kept = new Array(); 
 $(document).ready(function() {
 	$.ajax({
           url: "{%url 'ListQueries'%}?projectID={{request.session.projectID}}&full=True",
@@ -62,7 +61,8 @@ $(document).ready(function() {
 		for (i in data) {
 			html+="<li class='list-group-item black'><label class='checkbox-inline'><input type='checkbox' class='queryselection inputbox' value='"+data[i].name+"'> "+data[i].name+"</label><a href='#' class='badge'><em>"+data[i]["number of samples"]+"</em> samples<span class='dropdown carettoggle'><span class='caret'></span></a></li>";
 			html+="<li style='display:none' class='list-group-item list-group-item-info black'><b>Description:</b> "+data[i].description+"</li>";
-			samplesarray[data[i].name] = data[i].results.split(",");
+			if (data[i]["number of samples"] != 0) {samplesarray[data[i].name] = data[i].results.split(",");}
+			else {samplesarray[data[i].name] = [];}
 		}    
 		html+="</ul>";
 		$(element).prepend(html);
@@ -72,6 +72,7 @@ $(document).ready(function() {
 
 
 $(document.body).on('click', '.queryselection', function(){
+	kept = new Array(); 
 	samplecount = 0;
 	first = true;
 	kept.length = 0;

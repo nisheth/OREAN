@@ -17,14 +17,16 @@
 <div class='tab-content'>
   <div class='tab-pane active' id="attributestab">
     <form action="{%url 'buildquery'%}" method='POST'>{%csrf_token%}
-    <table id='mytable' class='white' align=center style="margin 0 auto;">
+    <table id='mytable' align=center style="margin 0 auto; color: white;">
     <tr><td>Project</td><td><input name='project' type='hidden' value="{{request.session.projectID}}"/>{{request.session.projectName}}</td></tr>
     <tr><td>Query Name</td><td><input name='queryname'/></td></tr>
+    <tr><td>Description</td><td><textarea name='description' class='black'></textarea></td></tr>
     <tbody class='filterblock'> 
     <tr><th colspan=2><hr></th></tr>
-    <tr><td>Attribute</td><td><select name='attribute'></select></td></tr>
-    <tr><td>Operator</td><td><select name='operator'></select></td></tr>
-    <tr><td>Value</td><td><input name='filtervalue'/></td></tr>
+    <tr><td>Attribute</td><td><select class='attrtrigger black' name='attribute'></select></td></tr>
+    <tr><td>Operator</td><td><select class='black' name='operator'></select></td></tr>
+    <tr><td>Value</td><td name='attrsection'><input name='filtervalue'/></td></tr>
+    <tr><td name='msg' colspan=2 style='background: rgb(217, 237, 247); text-align: center; color: black; padding: 5px;'></td></tr>
     </tbody>
     <tfoot>
     <tr><th colspan=2><hr></th></tr>
@@ -37,17 +39,18 @@
   </div>
   <div class='tab-pane' id="analysistab">
     <form action="{%url 'datasetquery'%}" method='POST'>{%csrf_token%}
-    <table align=center class='white' style="margin 0 auto;">
+    <table align=center class='white' style="margin 0 auto; color: white;">
     <tr><td>Project</td><td><input name='project' type='hidden' value="{{request.session.projectID}}"/>{{request.session.projectName}}</td></tr>
     <tr><td>Query Name</td><td><input name='queryname'/></td></tr>
+    <tr><td>Description</td><td><textarea name='description' class='black'></textarea></td></tr>
     <tr><th colspan=2><hr></th></tr>
-    <tr><td>Dataset</td><td><select name='dataset'></select></td></tr>
-    <tr><td>Method</td><td><select name='method'></select></td></tr>
-    <tr><td>Category</td><td><select name='category'></select></td></tr>
+    <tr><td>Dataset</td><td><select class='black' name='dataset'></select></td></tr>
+    <tr><td>Method</td><td><select class='black' name='method'></select></td></tr>
+    <tr><td>Category</td><td><select class='black' name='category'></select></td></tr>
     <tbody class='attributeblock'> 
     <tr><th colspan=2><hr></th></tr>
-    <tr><td>Taxa</td><td><select name='taxa'></select></td></tr>
-    <tr><td>Operator</td><td><select name='compare'>
+    <tr><td>Taxa</td><td><select class='black' name='taxa'></select></td></tr>
+    <tr><td>Operator</td><td><select class='black' name='compare'>
                                <option value="eq">=</option>
                                <option value="ne">&ne;</option>
                                <option value="gt">&gt;</option>
@@ -104,6 +107,8 @@ function getops() {
 }
 
 function updateops(element) {
+    var choices = $('select[name=attribute]').find('option');
+    if (choices.length == 0) {return false;}
     var opelement = $(element).find('select[name=operator]');
     $(opelement).empty();
     var active = $(element).find('select[name=attribute]').find(':selected');
@@ -137,6 +142,7 @@ function updateattr(projectID) {
 $(document).ready(function() {
      operators = getops();
      updateattr($('[name=project]').val());     
+     fetchattrvalues($('.attrtrigger').closest('tbody'));     
      var dataseturl = "{%url 'ListDatasets'%}?projectID={{request.session.projectID}}";
      $.get(dataseturl, function(data) {
        for(var i = 0; i < data.length; i++) {
@@ -161,6 +167,7 @@ $('#addfilter').click(function() {
      $(myclone).find('tr:last').append('<button class="btn btn-default dropfilter" type="button"><span class="glyphicon glyphicon-trash"></span> Remove</button>');
      $(mytable).find('tbody:last').after(myclone);
      updateops($(myclone).closest('tbody'));
+     fetchattrvalues($(myclone).closest('tbody'));
 });
 
 $('body').on('click', '.dropfilter', function() {
@@ -217,5 +224,37 @@ $('#attributefilter').click(function() {
      $(mytable).find('tbody:last').after(myclone);
 });
 
+$('body').on('change', '.attrtrigger', function() {
+     fetchattrvalues($(this).closest('tbody'));
+});
+
+function fetchattrvalues(element) {
+     attribute = $(element).find('select[name=attribute]').val();
+     section = $(element).find('td[name=attrsection]');
+     inputstring = "<input name='filtervalue'/>";
+     pid = {{request.session.projectID}};
+     $.get( "{% url 'PullAttributeValues' %}?projectID="+pid+"&attribute="+attribute, function( data ) {
+          $(".ajaxalert").remove();
+          if (data.type == "DECIMAL") {
+		$(element).find("td[name=msg]").html(attribute+" values range from "+data.data[0]+" to "+data.data[1]);
+                $(section).html(inputstring);
+	  } 
+          else { 
+		html = "<select class='black' name='filtervalue'>";
+		var i=0;
+                for (i = 0; i < data.data.length; i++) {
+			html += "<option value='"+data.data[i]+"'>"+data.data[i]+"</option>";
+		}
+                $(section).html(html);
+                msg = attribute+" has "+data.data.length+" possible answer"
+                if (data.data.length != 1) {msg+="s";}
+                $(element).find("td[name=msg]").html(msg);
+	  }
+     })
+    .fail(function() {
+        $(element).find("td[name=msg]").html("Error fetching data for "+attribute);
+        $(section).html(inputstring);
+    });
+}
 </script>
 {%endblock%}

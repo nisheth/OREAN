@@ -14,6 +14,9 @@ def main(request, invitecode=None):
     if not p.public and (not request.user.is_authenticated() or not member): return redirect('home')
     params['project'] = p
     params['samplecount'] = Analysis.objects.filter(project=p).values_list('sample', flat=True).distinct().count()
+    params['samplecountmeta'] = Attributes.objects.filter(project=p).values_list('sample', flat=True).distinct().count()
+    params['subjectcount'] = SubjectMap.objects.filter(project=p).values('subject').distinct().count() 
+    params['visitcount'] = SubjectMap.objects.filter(project=p).values('visit', 'subject').distinct().count() 
     params['attrcount'] = AttributeInfo.objects.filter(project=p).count()
     params['member'] = member
     return render(request, 'projectPage.html', params) 

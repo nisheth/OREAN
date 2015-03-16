@@ -3,27 +3,19 @@
 {%block title%}LEfSe{%endblock%}
 
 {%block sidebar%}
-    <h2>LEfSe Analysis - By Attribute</h2><a href={% url "lefse2" %}><button class='btn btn-default' type='button'>Run LEfSe Comparing Queries</button></a>
-    <hr>
-    <legend>Select a Query</legend>
-    <form id='dataform' action='{%url "lefse"%}' method='get'>{%csrf_token%}
-       <select name='query'>
-       <option value="">---</option>
-       {%for query in queries %}
-       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
-       {%endfor%}
-       </select><br>
+    <h2>LEfSe Analysis - By Query</h2>
+    <a href={% url "lefse" %}><button class='btn btn-default' type='button'>Run LEfSe Using Attributes</button></a>
+    <form id='dataform' action='{%url "lefse2"%}' method='get'>{%csrf_token%}
        <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>
        <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
        <hr><legend>Select a Method</legend><select name='method'></select><br>
        <hr><legend>Select a Category</legend><select name='category'></select><br>
-       <hr><legend>Select an Attribute</legend>
-       <select name='attribute'>
-       <option value="">---</option>
-       {%for attr in attributes %}
-       <option rel="{{attr.project}}" value="{{attr.name}}" {%if attr.name == selectedattr%} selected{%endif%}>{{attr.name}}</option>
-       {%endfor%}
-       </select><br>	
+       <hr><legend>Select Queries</legend>
+             <select name='query' id='queryoptions' multiple="multiple" style='width: auto'>
+             {%for q in queries%}
+       	       <option rel="{{q.project}}" value="{{q.name}}" {%if q.name == selectedq%} selected{%endif%}>{{q.name}}</option>
+             {%endfor%}
+             </select>
     </form>
     <button id='plotrender'>View</button>
 {%endblock%}
@@ -36,6 +28,10 @@
 <script src="http://code.highcharts.com/highcharts.js"></script>
 <script src="http://code.highcharts.com/modules/exporting.js"></script>
 <script>
+$("#queryoptions").select2({
+ maximumSelectionLength: 2,
+});
+
 function loadchart(data, cats) {
 	$('#chart').highcharts({
 	        chart: {
@@ -77,10 +73,10 @@ function loadchart(data, cats) {
 	            },
 	        },
 		tooltip: {
-                    enabled: true,
+		    enabled: true,
                     formatter: function() {
-                        return '<b>' + this.x + ':</b> '+this.y ;
-                    }
+        		return '<b>' + this.x + ':</b> '+this.y ;
+    		    }
 		},
 	        legend: {
 	            layout: 'vertical',

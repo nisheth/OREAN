@@ -1,0 +1,154 @@
+{%extends "base.html"%}
+
+{%block title%}Profile Page{%endblock%}
+
+{%block sidebar%}
+    <h2>Plot Profiles</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form action='{%url "stackedbars"%}' method='post'>{%csrf_token%} 
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>     
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+    </form>
+    <button id='plotrender'>View</button> 
+{%endblock%}
+
+
+{%block content%}
+    <div id='chartdiv' style='clear: both; margin:auto; width: 95%; height: 75%;'><svg id='chart'></svg></div>
+
+{%endblock%}
+
+{%block js%}
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.3/d3-tip.min.js"></script>
+<script>
+
+var color = d3.scale.category20();
+var margin = {top: 30, right: 40, bottom: 10, left: 50},
+    width = $("#chartdiv").width() - margin.left - margin.right,
+    height = $("#chartdiv").height() - margin.top - margin.bottom;
+
+var y = d3.scale.linear()
+        .domain([0, 100])
+        .range([height, 0]);
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+function execD3(csvURL) {
+
+	var svg = d3.select('#chart')
+	                .attr("width", width + margin.left + margin.right)
+	                .attr("height", height + margin.top + margin.bottom)
+	                .append("g")
+	                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	svg.append("g")
+           .attr("class", "y axis")
+           .call(yAxis);
+	
+	var tip = d3.tip()
+	  .attr('class', 'd3-tip')
+	  .offset([-10, 0])
+	  .html(function(d) {
+	    return "<strong>Sample:</strong> <span style='color:"+ color(d.taxa) +"'>"+ d.sample + "</span><br><strong>Taxa:</strong> <span style='color:"+ color(d.taxa) + "'>" + d.taxa + "</span><br><Strong>Value:</strong> <span style='color:"+ color(d.taxa) + "'>" + d.profile + "</span>";
+	  })
+	
+	svg.call(tip);
+
+	var formatted = [];
+	d3.csv(csvURL, type, function(error, data) {
+	
+	        seen = {};
+	        color.domain(data.map(function(d){if (seen.hasOwnProperty(d.taxa)){return false;} else {seen[d.taxa] = true; return d.taxa;}}).filter(function(n){ return n != false; }))
+	
+	        var offset = height;
+	        var curSample = "";
+	        data.forEach(function(d,i) {
+	                if (curSample != d.sample) {
+	                        offset = height;
+	                        curSample = d.sample;
+	                        formatted.push([]);
+	                }
+	                offset -= (height - y(d.profile));
+	                d.y = offset;
+	                formatted[formatted.length - 1].push(d);
+	        });
+	
+	        var barWidth = width / formatted.length;
+	
+	        var column = svg.selectAll(".bar")
+	            .data(formatted)
+	          .enter().append("g")
+	            .attr("transform", function(d, i) { return "translate(" + i * barWidth + ",0)"; });
+	
+	        var bar = column.selectAll(".inner")
+	            .data(function(d) {return d;})
+	          .enter().append("g");
+	
+	        bar.append("rect")
+	            .attr("y", function(d) { return d.y; })
+	            .attr("height", function(d) { return height - y(d.profile); })
+	            .attr("width", barWidth - 1)
+	            .attr("fill", function(d) {return color(d.taxa);})
+	            .on('mouseover', tip.show)
+	            .on('mouseout', tip.hide);
+
+		/*
+	        bar.append("rect")
+	            .attr("y", function(d) { return y(d.profile); })
+	            .attr("height", function(d) { return height - y(d.profile); })
+	            .attr("width", barWidth - 1)
+	            .attr("fill", function(d) {return color(d.taxa);});
+	        bar.append("text")
+	            .attr("x", barWidth / 2)
+	            .attr("y", function(d) { return d.y + 3; })
+	            .attr("dy", ".75em")
+	            .text(function(d) { return d.profile; });
+	        */
+	
+	});
+}
+
+function type(d) {
+        d.profile = +d.profile;
+        return d;
+}
+
+function runajax(form, chart) {
+        $("div#content").block({message: '<h3><img src="{{STATIC_URL}}img/busy.gif" /> Processing...</h3>'}); 
+        $.ajax({
+            type: form.attr('method'),
+            url: form.attr('action'),
+            data: form.serialize()+"&format=json",
+            dataType: 'json',
+            success: function (data) {
+	        $("#chart").empty();
+		execD3(data);
+            },
+            complete: function() { 
+                    // unblock when remote call returns 
+                    $("div#content").unblock();  
+            }, 
+        });
+}
+
+var frm = $('form');
+$('#plotrender').click(function() {
+	runajax(frm, $('#chart'));
+});
+</script>
+
+</script>
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
+{%endblock%}

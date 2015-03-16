@@ -5,15 +5,50 @@ import myutils
 import simplejson as json
 import time
 import os
+import numpy as np
 from api import internal
+from api.models import *
 from MiRA.views import SCRIPTPATH
 from MiRA.decorators import *
 
 @login_required
 @activeproject
+def alpha2(request):
+    params = {}
+    params['queries'] = internal.ListQueries(request, {'projectID': [request.session['projectID']]})
+    querynames = request.GET.getlist('query') or None
+    inputdataset = request.GET.get('dataset') or None
+    method = request.GET.get('method') or None
+    category = request.GET.get('category') or None
+    if querynames:
+        if not querynames or not inputdataset or not method or not category: return render(request, 'alpha2.html', params)
+        datapoints = []
+        outlierpoints = []
+        count = 0
+        for query in querynames:
+            sampleslist = Query.objects.get(project=request.session['projectID'], name=query).expandsamples
+            querydata = list(Calculation.objects.filter(project=request.session['projectID'], calculation='Alpha Diversity', dataset=inputdataset, method=method, category=category, sample__in=sampleslist).values_list('value', flat=True))
+            querydata.sort()
+            myarr = np.array(querydata)
+            median = np.percentile(myarr, 50)
+            lowerq = np.percentile(myarr, 25)
+            upperq = np.percentile(myarr, 75)
+            iqr = 1.5 * (upperq - lowerq)
+            outliers = [[count, x] for x in querydata if x < lowerq-iqr or x > iqr+upperq]
+            lowerx = [x for x in querydata if x > lowerq-iqr][0]
+            upperx = [x for x in querydata if x < upperq+iqr][-1]
+            datapoints.append([lowerx, lowerq, median, upperq, upperx])
+            outlierpoints.append(outliers)
+            count+=1
+        finaldata = [querynames, datapoints, outlierpoints]
+        return HttpResponse(json.dumps(finaldata), content_type="application/json")
+    return render(request, 'alpha2.html', params)
+
+@login_required
+@activeproject
 def alpha(request):
     params = {}
-    params['queries'] = myutils.call_api(request, 'ListQueries')
+    params['queries'] = internal.ListQueries(request, {'projectID': [request.session['projectID']]})
     querynames = request.GET.getlist('query') or None
     inputdataset = request.GET.get('dataset') or None
     method = request.GET.get('method') or None
@@ -62,7 +97,7 @@ def alpha(request):
 @activeproject
 def beta(request):
     params = {}
-    params['queries'] = myutils.call_api(request, 'ListQueries')
+    params['queries'] = internal.ListQueries(request, {'projectID': [request.session['projectID']]})
     querynames = request.GET.getlist('query') or None
     inputdataset = request.GET.get('dataset') or None
     method = request.GET.get('method') or None

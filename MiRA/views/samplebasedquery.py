@@ -4,12 +4,13 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from . import myutils
 import json
-
+from api import internal
+from api import *
 @login_required
 @activeproject
 def main(request):
     params = {}
-    params['projects'] = myutils.call_api(request, 'ListProjects')
+    params['projects'] = internal.ListProjects(request)
     if request.method=='POST':
         projectID = int(request.POST.get('project'))
         queryname = request.POST.get('queryname') or None
@@ -23,6 +24,6 @@ def main(request):
             else: samplelist.append(sample)
         if not queryname or not projectID or not len(samplelist): return render(request, 'buildquery.html', params)
         print 'Views Description:', description
-        finalquery = myutils.call_api(request, 'BuildQuery', params={'projectID': projectID, 'queryname': queryname, 'description': description, 'sample': samplelist}, is_post=True)
+        finalquery = internal.BuildQueryFromList(request, {'projectID': [projectID], 'queryname': [queryname], 'description': [description], 'sample': samplelist})
         return redirect('managequeries')
     return render(request, 'samplebasedquery.html', params)

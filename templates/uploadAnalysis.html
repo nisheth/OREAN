@@ -1,0 +1,27 @@
+{% extends "splash.html" %}
+
+{%block title %}upload analysis{%endblock%}
+
+{% block content %}
+<h2>Upload new analysis data</h2>
+{{msg}}
+
+<form action='{%url "uploadAnalysis"%}' method='post' enctype='multipart/form-data'>
+
+<table class='white table'>
+{%csrf_token%}
+{{form.as_table}}
+</table>
+
+<input type='submit' value='Upload Data'/>
+</form>
+{%endblock%}
+
+{%block js%}
+<script>
+//$('#id_taxonomy').closest('tr').hide();
+$('#id_use_taxonomy').click(function() {
+	$('#id_taxonomy').closest('tr').toggle();
+});
+</script>
+{%endblock%}

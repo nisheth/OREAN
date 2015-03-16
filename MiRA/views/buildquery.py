@@ -4,15 +4,17 @@ from django.contrib.auth.decorators import login_required
 from . import myutils
 import json
 from MiRA.decorators import *
-
+from api import internal
+from api import *
 @login_required
 @activeproject
 def main(request):
     params = {}
-    params['projects'] = myutils.call_api(request, 'ListProjects')
+    params['projects'] = internal.ListProjects(request)
     if request.method=='POST':
         projectID = int(request.POST.get('project'))
         queryname = request.POST.get('queryname') or None
+        querydesc = request.POST.get('description', None)
         attributes = filter(bool, request.POST.getlist('attribute'))
         print attributes
         operators = filter(bool, request.POST.getlist('operator'))
@@ -29,19 +31,17 @@ def main(request):
                 this_oper = operators[x]
                 this_val = values[x]
                 this_query = "tmp_%s_%d" %(request.user.username, x)
-                args = {'projectID': projectID,
-                        'attribute': this_attr,
-                        'cmp': this_oper,
-                        'v1': this_val,
-                        'queryname': this_query} 
-                buildresult =  myutils.call_api(request, 'BuildQuery', params=args)   
-                print this_query
+                args = {'projectID': [projectID],
+                        'attribute': [this_attr],
+                        'cmp': [this_oper],
+                        'v1': [this_val],
+                        'queryname': [this_query]} 
+                buildresult =  internal.BuildQuery(request, args)   
                 tmp_queries.append(this_query)
-            finalquery = myutils.call_api(request, 'MergeQuery', params={'queryname': tmp_queries, 'type':'intersection', 'mergename': queryname})
+            finalquery = internal.MergeQuery(request, {'projectID': [projectID], 'queryname': tmp_queries, 'type':['intersection'], 'mergename': [queryname], 'description': [querydesc]})
             for tmp in tmp_queries:
-                status =  myutils.call_api(request, 'DeleteQuery', params={'queryname':tmp, 'projectID':projectID})
-                print "deleted tmp query:", this_query
-        else: finalquery = myutils.call_api(request, 'BuildQuery', params={'projectID': projectID, 'attribute': attributes[0], 'cmp': operators[0], 'v1': values[0], 'queryname': queryname})
+                status =  internal.DeleteQuery(request, {'queryname':[tmp.name], 'projectID':[projectID]})
+        else: finalquery = internal.BuildQuery(request, {'projectID': [projectID], 'attribute': [attributes[0]], 'cmp': [operators[0]], 'v1': [values[0]], 'queryname': [queryname], 'description': [querydesc]})
         return redirect('managequeries')
     return render(request, 'buildquery.html', params)
 
@@ -51,6 +51,7 @@ def dataset(request):
     if request.method=='POST':
         projectID = int(request.POST.get('project'))
         queryname = request.POST.get('queryname') or None
+        querydesc = request.POST.get('description', None)
         dataset = request.POST.get('dataset') or None
         method = request.POST.get('method') or None
         category = request.POST.get('category') or None
@@ -63,13 +64,14 @@ def dataset(request):
         ops = ['eq','eq','eq']+['eq' for x in taxa]+operators
         vals = [dataset, method, category]+[ t for t in taxa] + values
         finalquery = None
-        args = {'projectID': projectID,
+        args = {'projectID': [projectID],
                 'attribute': attributes,
                 'cmp': ops,
                 'v1': vals,
-                'queryname': queryname
+                'queryname': [queryname],
+                'description': [querydesc]
                }
-        finalquery = myutils.call_api(request, 'BuildDatasetQuery', params=args)
+        finalquery = internal.BuildDatasetQuery(request, args)
         return redirect('managequeries')
     return redirect('buildquery')
 

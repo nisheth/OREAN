@@ -12,7 +12,7 @@ from MiRA.decorators import *
 def main(request):
     params = {}
     params['time'] = []
-    params['queries'] = myutils.call_api(request, 'ListQueries')
+    params['queries'] = internal.ListQueries(request, {'projectID': [request.session['projectID']]})
     if request.method=='POST':
         start = time.time()
         queryname = request.POST.get('query') or None
@@ -21,7 +21,7 @@ def main(request):
         category = request.POST.get('category') or None
         if not queryname or not dataset or not method or not category: return render(request, 'profile.html', params)
         params['feedback'] = 'Query selected: "%s"' % queryname
-        query = myutils.call_api(request, 'ListQueries', params={'queryname': queryname, 'full': True})
+        query = internal.ListQueries(request, {'projectID': [request.session['projectID']], 'full': [True], 'queryname': [queryname]})
         if not query or not len(query): return render(request, 'profile.html', params)
         else: query = query[0]
         samplelist = myutils.fieldexpand(query['results'])

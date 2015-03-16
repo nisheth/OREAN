@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{{STATIC_URL}}css/custom.css" />
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/css/select2.min.css" />
 </head>
 
 <body>
@@ -26,7 +27,10 @@
           <ul class='dropdown-menu'>
             <li><a href='{% url "createProject" %}'>New</a></li>
             <li><a href='{% url "chooseproject" %}'>Choose</a></li>
-            {%if is_project_admin %}<li><a href='{%url "manageProject"%}'>Manage</a></li>{%endif%}
+            {%if is_project_admin %}
+            <li><a href='{%url "manageProject"%}'>Manage</a></li>
+            <li><a href='{%url "uploadAnalysis"%}'>Upload Analysis Data</a></li>
+            {%endif%}
           </ul>
         </li>
         <li class="dropdown">
@@ -50,6 +54,7 @@
           <ul class='dropdown-menu'>
             <li><a href='{% url "area" %}'>Stacked Bars</a></li>
             <li><a href='{% url "16sProfileBoxplot" %}'>Boxplot</a></li>
+            <li><a href='{% url "samplereport" %}'>Sample</a></li>
           </ul>
         </li>
         <li class="dropdown">
@@ -109,13 +114,16 @@
 {%endblock%}
 <div style='clear: both'></div>
 </div>
-
+{%if request.session.projectTimecourse%}
+<h1>THIS IS A TIMECOURSE!!!!!!!</h1>
+{%endif%}
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
 <script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
 <script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/js/select2.min.js"></script>
 <script>
 $(window).load(function() {
   $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));

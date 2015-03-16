@@ -1,0 +1,17 @@
+{% extends "splash.html" %}
+
+{% block content %}
+<h2>Upload a new taxonomy</h2>
+{{msg}}
+
+<form action='{%url "uploadTaxa"%}' method='post'>
+
+<table class='white table'>
+{%csrf_token%}
+{{form.as_table}}
+</table>
+
+<input type='submit' value='Create New Taxonomy'/>
+</form>
+
+{%endblock%}

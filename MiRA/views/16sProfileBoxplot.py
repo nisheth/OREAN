@@ -22,7 +22,7 @@ def isfloat(value):
 def main(request):
     CUTOFF=20
     params = {}
-    params['queries'] = myutils.call_api(request, 'ListQueries')
+    params['queries'] = internal.ListQueries(request, {'projectID': [request.session['projectID']]})
     querynames = request.GET.getlist('query') or None
     querynames = request.GET.getlist('query') or None
     inputdataset = request.GET.get('dataset') or None

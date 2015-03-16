@@ -16,6 +16,7 @@ class GetOrNoneManager(models.Manager):
         except self.model.DoesNotExist:
             return None
 
+# Hook to create token for new users when they are created
 @receiver(post_save, sender=get_user_model())
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
@@ -25,11 +26,13 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 def generateapikey(size=16, chars=string.ascii_letters):
     return "".join(random.choice(chars) for _ in range(size))
 
-# Custom User Model
-# Extends user model to include api key
-#class CustomUser(User):
-#    apikey = models.CharField(max_length=16, unique=True, default=generateapikey())
-#    objects = UserManager()
+
+# subject map
+class SubjectMap(models.Model):
+    project = models.ForeignKey('Project')
+    subject = models.CharField(max_length=255)
+    visit = models.CharField(max_length=255)
+    sample = models.CharField(max_length=255)
 
 # Project table
 class Project(models.Model):
@@ -40,6 +43,9 @@ class Project(models.Model):
 
     def __unicode__(self):
        return "%s" % self.name
+
+    def is_timecourse(self):
+       return SubjectMap.objects.filter(project=self).exists()
 
 # Maps which users can access which projects
 # and who can manage each project
@@ -54,7 +60,7 @@ class UserProject(models.Model):
 class Query(models.Model):
     user=models.ForeignKey(User)
     project = models.ForeignKey(Project)
-    name=models.CharField(max_length=255, unique=True)
+    name=models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     sqlstring = models.TextField(null=True, blank=True)
     results = models.TextField()
@@ -67,6 +73,9 @@ class Query(models.Model):
     @property
     def expandsamples(self):
         return self.results.split(',')
+
+    class Meta:
+        unique_together = ("project", "name")
 
 # name = the name of the field in attributes table
 # fieldtype = WHICH type to cast the data to during queries
@@ -89,6 +98,7 @@ class AttributeInfo(models.Model):
     class Meta:
         unique_together = (("project", "name"),)
 
+# Metadata for projects
 class Attributes(models.Model):
     project = models.ForeignKey(Project)
     sample = models.CharField(max_length=255)
@@ -96,6 +106,7 @@ class Attributes(models.Model):
     field = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
 
+# Analysis based data for projects
 class Analysis(models.Model):
     project = models.ForeignKey(Project)
     sample = models.CharField(max_length=255, db_index=True)
@@ -103,10 +114,22 @@ class Analysis(models.Model):
     method = models.CharField(max_length=255, db_index=True)
     category = models.CharField(max_length=255, db_index=True)
     entity = models.CharField(max_length=255, db_index=True) 
+    taxatree = models.ForeignKey('TaxaTree', null=True)
     numreads = models.IntegerField()
     profile = models.FloatField()
     avgscore = models.FloatField()
 
+    def __unicode__(self):
+       return "%s" % self.id
+    class Meta:
+        index_together = [
+            ["project", "sample"],
+            ["project", "dataset"],
+            ["project", "dataset", "method"],
+            ["project", "dataset", "method", "category"],
+        ]
+
+# Tracks access permissions for user registration and password reset
 class EmailTokens(models.Model):
     TYPE_CHOICES = (
       (1, 'registration'),
@@ -119,13 +142,63 @@ class EmailTokens(models.Model):
     datetime = models.DateTimeField(auto_now_add=True)
     token = models.CharField(max_length=32, unique=True)
 
+# Tracks which projects new users can be added to from invitations
 class Invitations(models.Model):
     email = models.EmailField()
     project = models.ForeignKey(Project)
     user = models.ForeignKey(User)
     timedate = models.DateTimeField(auto_now_add=True)
 
+# Tracks which project each user is currently working on
 class ActiveProject(models.Model):
     user = models.ForeignKey(User, unique=True)
     project = models.ForeignKey(Project)
     objects = GetOrNoneManager()
+
+# Stores calculations that are atomic to a single sample
+class Calculation(models.Model):
+    project = models.ForeignKey(Project)
+    sample = models.CharField(max_length=255, db_index=True)
+    dataset = models.CharField(max_length=255, db_index=True)
+    method = models.CharField(max_length=255, db_index=True)
+    category = models.CharField(max_length=255, db_index=True)
+    calculation = models.CharField(max_length=255, db_index=True)
+    value = models.FloatField()
+
+# Stores calculations that compare two samples
+class PairwiseCalculation(models.Model):
+    project = models.ForeignKey(Project)
+    sample1 = models.CharField(max_length=255, db_index=True)
+    sample2 = models.CharField(max_length=255, db_index=True)
+    dataset = models.CharField(max_length=255, db_index=True)
+    method = models.CharField(max_length=255, db_index=True)
+    category = models.CharField(max_length=255, db_index=True)
+    calculation = models.CharField(max_length=255, db_index=True)
+    value = models.FloatField()
+
+# Stores information about reference taxonomy
+class Taxonomy(models.Model):
+    name = models.CharField(max_length=255, db_index=True, unique=True)
+    description = models.TextField()
+    url = models.URLField(max_length=255)
+    datestamp = models.DateTimeField(auto_now_add=True)
+    def __unicode__(self):
+        return self.name
+
+
+# Stores heirarchical information about reference
+# taxonomy
+# note that parent id is null for a root node
+class TaxaTree(models.Model):
+    taxonomy = models.ForeignKey(Taxonomy)
+    tax_id = models.IntegerField()
+    tax_name = models.CharField(max_length=255)    
+    tax_level = models.CharField(max_length=255)    
+    parent_id = models.ForeignKey('self', blank=True, null=True)
+    full_tree = models.TextField()
+
+    class Meta:
+        unique_together = ('taxonomy', 'tax_id')
+        index_together = [
+            ["taxonomy", "tax_id"],
+        ]

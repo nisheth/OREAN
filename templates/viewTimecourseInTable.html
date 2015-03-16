@@ -1,0 +1,43 @@
+{%extends "base.html"%}
+
+{%block title%}Timecourse Investigator{%endblock%}
+
+{%block sidebar%}
+<h2>Choose Data</h2>
+          <hr>
+          <legend>Select a Query</legend>
+          <form action='{%url "timecourseTable"%}' method='post'>{%csrf_token%}
+             <select id='querychoice' name='query'>
+             <option value="">---</option>
+             {%for query in queries %}
+             <option pid="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+             {%endfor%}
+             </select><br>
+
+          <hr>
+          <legend>Select an Attribute</legend>
+          <select name='attribute'>
+             <option value="">---</option>
+             {%for attr in attributes%}
+             <option value="{{attr}}" {%if attr == selectedattribute%} selected{%endif%}>{{attr}}</option>
+             {%endfor%}
+          </select><br><br>
+          <button class='btn btn-default'>Submit</button>
+          </form>
+{%endblock%}
+
+{%block content%}
+{%for subj, visits in subjects.iteritems%}
+  <P>{{subj}}</P>
+  <P>
+    {%for v in visits.0%}
+    <SPAN style='margin-left:20px; padding-left:20 px'>{{v}}</SPAN>
+    {%endfor%}
+  </P>
+{%endfor%}
+
+{{subjects}}
+{%endblock%}
+
+{%block js%}
+{%endblock%}

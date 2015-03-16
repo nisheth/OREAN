@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{%block title%} Sample Report {%endblock%}
+
+{%block sidebar %}
+<h2>Sample Report</h2>
+
+ <select name='sample' id='samplelist' style='width: auto'>
+ 	<option value="">----------</option>
+ {%for s in samples%}
+ 	<option value="{{s}}">{{s}}</option>
+ {%endfor%}
+</select>
+<button class='btn btn-default' id='submit'>Generate Report</button>
+
+{%endblock%}
+
+{%block content%}
+<div class='container-fluid'>
+	<div class='row'>
+		<div class='col-lg-2'>
+		    <table id='metadata' class='table white' style='display:none'></table>
+		</div>
+		<div id='krona' class='col-lg-10'>
+		</div>
+	</div>
+</div>
+{%endblock%}
+
+{%block js%}
+<script>
+var frameheight = (screen.height/1.6);
+$("#samplelist").select2();
+var resp;
+var selected = "";
+$("#submit").click(function () {
+	var choice = $("#samplelist").val();
+	if (choice == "") {return false;}
+	else if (selected != choice) {
+		selected = choice;
+		$.ajax({
+			url: '{% url "fetchsampledata" %}',
+			type: 'GET',
+			data: {sample: choice},
+		})
+		.done(function(msg) {
+			resp = msg;
+			if (msg.error) {alert( "there was an error while processing your request" );}
+                        else {
+				var lastCategory = "";
+				var table = $("#metadata");
+				$(table).empty();
+				msg.metadata.forEach(function(element) {
+                                        if (lastCategory != element.category) {
+						var header = "<tr class='active black'><th colspan=2>"+element.category+"</th></tr>";
+						$(table).append(header);			
+						lastCategory = element.category;
+					}
+					var rowString = "<tr><th>"+element.field+"</th><td>"+element.value+"</td></tr>";
+					$(table).append(rowString);			
+				});
+				$(table).show();
+				$("#krona").empty();
+				kronatag = "<iframe src=\"{%url 'krona' %}?sample="+choice+"\" width=\"100%\" height=\""+frameheight+"px\"></iframe>";
+				$("#krona").append(kronatag);
+			}
+		})
+		.fail(function() {
+			alert( "failed to generate the sample report" );
+		});
+	}
+
+});
+</script>
+{%endblock%}
