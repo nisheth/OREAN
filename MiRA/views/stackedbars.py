@@ -12,7 +12,6 @@ from MiRA.settings import MEDIA_URL as murl, MEDIA_ROOT as mroot
 @activeproject
 def main(request):
     params = {}
-    params['time'] = []
     params['queries'] = internal.ListQueries(request, {'projectID': [request.session['projectID']]})
     if request.method=='POST':
         start = time.time()
@@ -32,57 +31,36 @@ def main(request):
 
         if not os.path.isfile(fpath):
             samplelist = myutils.fieldexpand(query['results'])
-            mark = time.time()
             dataset =  internal.GetDataset(request, params={'queryname': [queryname], 'projectID': [query['project_id']], 'dataset': [datasetname], 'category': [category], 'method': [method]})
-            entityorder = []
-            datahash = {}
             with open(fpath, 'w') as f:
               f.write('sample,taxa,profile\n')
-              for d in dataset.order_by('sample'):
-               #if d.entity not in datahash: 
-               #  entityorder.append(d.entity)
-               #  datahash[d.entity] = []
-               #datahash[d.entity].append(d)
-               if d.profile > 0.1: f.write("%s,%s,%f\n" % ( d.sample, d.entity, d.profile ))
-            #for taxa in entityorder:
-            #  for row in datahash[taxa]:
-            #    resp += "%s,%s,%f\n" % ( row.sample, row.entity, row.profile )
-        return HttpResponse(json.dumps(furl), content_type="application/json")
+              #for d in dataset.order_by('sample'):
+              # if d.profile > 0.1: f.write("%s,%s,%f\n" % ( d.sample, d.entity, d.profile ))
 
-        #jsondata = []
-        #magichash = {}
-        #maxhash = {}
-        #sorterhash = {}
-        #entityorder = []
-        #first = True
-        #for d in dataset:
-        #    if first: 
-        #        params['time'].append('parsed input and fetched API data: %.02f' %(time.time() - start))
-        #        first=False
-        #    if d.profile < 1: continue
-        #    if d.sample not in maxhash or d.profile > maxhash[d.sample]['val']: maxhash[d.sample] = {'entity': d.entity, 'val': d.profile}
-        #    if d.entity in magichash: magichash[d.entity][d.sample] = d.profile
-        #    else: magichash[d.entity] = {d.sample:d.profile}
-        #params['time'].append('computed max profile values: %.02f ' %(time.time() - start))
-        #for sample in sorted(maxhash, key=lambda x: maxhash[x]['val'], reverse=True):
-        #    if maxhash[sample]['val'] < 5: continue 
-        #    if maxhash[sample]['entity'] not in sorterhash: 
-        #        sorterhash[maxhash[sample]['entity']] = [sample]
-        #        entityorder.append(maxhash[sample]['entity'])
-        #    else: sorterhash[maxhash[sample]['entity']].append(sample)
-        #params['time'].append('sorted taxa: %.02f' %(time.time() - start))
-        #samplelist = []
-        #for element in entityorder:
-        #    for x in sorterhash[element]: samplelist.append(x)
-        #params['time'].append('sorted samples: %.02f' %(time.time() - start))
-        #for m in magichash:
-        #    tmp = {'name': m, 'data': []}
-        #    for i,s in enumerate(samplelist):
-        #        if s in magichash[m]: tmp['data'].append(magichash[m][s])
-        #        else: tmp['data'].append(0)
-        #    jsondata.append(tmp)
-        #params['time'].append('formatted data for JSON conversion: %.02f' %(time.time() - start))
-        #params['json'] = json.dumps([samplelist, jsondata, params['time']])
-        #return HttpResponse(params['json'], content_type="application/json")
+              taxahash = dict()
+              samplemax = dict()
+              datahash = dict()
+              for d in dataset:
+                if d.profile < 0.1: continue
+                if d.entity not in taxahash or d.profile > taxahash[d.entity]: 
+                  taxahash[d.entity] = d.profile
+                if d.entity not in datahash: datahash[d.entity] = dict()
+                if d.sample not in samplemax: 
+                  samplemax[d.sample] = {'e': d.entity, 'p': d.profile}
+                  datahash[d.entity][d.sample] = {d.entity: d.profile} 
+                elif d.profile > samplemax[d.sample]['p']:
+                  current = samplemax[d.sample]
+                  samplemax[d.sample] = {'e': d.entity, 'p': d.profile}
+                  sampledata = datahash[current['e']][d.sample]
+                  del datahash[current['e']][d.sample]
+                  sampledata[d.entity] = d.profile
+                  datahash[samplemax[d.sample]['e']][d.sample] = sampledata
+                else:
+                  datahash[samplemax[d.sample]['e']][d.sample][d.entity] = d.profile
+              for t, tmax in sorted(taxahash.items(), key=lambda x: -x[1]):
+                for sample, data in sorted(datahash[t].items(), key= lambda x: -x[1][t]):
+                  for entity, profile in sorted(data.items(), key=lambda x: x[1]):
+                    f.write("%s,%s,%s\n" % (sample, entity, profile)) 
+        return HttpResponse(json.dumps(furl), content_type="application/json")
     return render(request, 'stackedbars.html', params)
 

@@ -6,22 +6,37 @@
 <h2>Upload new analysis data</h2>
 {{msg}}
 
-<form action='{%url "uploadAnalysis"%}' method='post' enctype='multipart/form-data'>
+<form id='form' action='{%url "uploadAnalysis"%}' method='post' enctype='multipart/form-data'>
 
 <table class='white table'>
 {%csrf_token%}
 {{form.as_table}}
 </table>
 
-<input type='submit' value='Upload Data'/>
+<input id='submit' type='button' value='Upload Data'/>
 </form>
+
+<div id='progress-panel' class="panel panel-default" style='display:none'>
+  <div class="panel-heading">
+	<progress max=100 value=0 style='width:100%'></progress>
+	<div class='text-center'><span id='percentage'>0</span> % uploaded</div>
+  </div>
+</div>
 {%endblock%}
 
 {%block js%}
+<script src="{{STATIC_URL}}js/uploadProgress.js"></script>
 <script>
 //$('#id_taxonomy').closest('tr').hide();
 $('#id_use_taxonomy').click(function() {
 	$('#id_taxonomy').closest('tr').toggle();
+});
+
+$('#submit').click(function(){
+    //var urlstring = "/upload/file";
+    var urlstring = "{%url "uploadAnalysis"%}";
+    var formdata = new FormData($('#form')[0]);
+    uploadFormShowFileProgress(urlstring, formdata);
 });
 </script>
 {%endblock%}

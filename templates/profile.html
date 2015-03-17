@@ -6,7 +6,7 @@
     <h2>Plot Profiles</h2>
     <hr>
     <legend>Select a Query</legend>
-    <form action='{%url "stackedbars"%}' method='post'>{%csrf_token%} 
+    <form action='{%url "area"%}' method='post'>{%csrf_token%} 
        <select name='query'>
        <option value="">---</option>
        {%for query in queries %}
