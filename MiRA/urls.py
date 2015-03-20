@@ -54,5 +54,7 @@ urlpatterns = patterns('',
     # file upload
     url(r'upload/taxa', 'api.uploads.taxa.main', name='uploadTaxa'),
     url(r'upload/analysis', 'api.uploads.analysis.main', name='uploadAnalysis'),
+    url(r'upload/metadata', 'api.uploads.metadata.main', name='uploadMetadata'),
+    url(r'upload/status', 'api.uploads.status.main', name='uploadStatus'),
 
 )

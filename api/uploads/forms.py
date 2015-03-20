@@ -9,6 +9,15 @@ class UploadTaxaForm(forms.ModelForm):
         fields = ['name', 'description', 'url'] 
 
 class UploadAnalysisForm(forms.Form):
-    file=forms.FileField()
+    #file=forms.FileField()
     use_taxonomy=forms.BooleanField(initial=True, required=False)
     taxonomy=forms.ModelChoiceField(required=False, queryset=Taxonomy.objects.all(), widget=forms.Select(attrs={'class': "black"}))
+
+class UploadFileForm(forms.ModelForm):
+    class Meta:
+        model = UploadedFile
+        fields = ['type', 'user', 'file']
+        widgets = {
+            'type': forms.HiddenInput,
+            'user': forms.HiddenInput,
+        }

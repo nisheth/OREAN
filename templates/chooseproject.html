@@ -11,11 +11,20 @@
             <p class="lead">
               <h4>Choose from the list of available projects</h4>
               <form action="{%url 'chooseproject'%}" method='POST'>{%csrf_token%}
-              <select name='project' style="color:black">{%for project in projects%}<option value="{{project.id}}|{{project.name}}">{{project.name}}</option>{%endfor%}</select>
+              <select name='project' style="color:black">
+	      {%for project in projects%}
+		<option value="{{project.id}}|{{project.name}}" {%if request.session.projectID == project.id%} selected{%endif%}>{{project.name}}</option>
+	      {%endfor%}
+	      </select>
               <br>
               <br>
               <input class='btn btn-default' type='submit' value='Submit'/>
               </form>
             </p>
           </div>
+{%endblock%}
+
+
+{%block js%}
+<script src="{{STATIC_URL}}js/hidePanel.js"></script>
 {%endblock%}

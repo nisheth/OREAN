@@ -5,7 +5,8 @@
  *   2.) a "progress" element (must only have one such element) for graphical depiction of progress
  *   3.) an element with id "percentage" for text display of upload progress
  *   4.) URL must use 'POST' method
- * input is the url to call and the formdata (  built using formdata = new FormData($("form")[0]);  )
+ *   5.) a form with id "uploadForm"
+ * input is the url to call and the formdata (  built using formdata = new FormData($("#uploadForm")[0]);  )
  */
 function uploadFormShowFileProgress(urlstring, formdata) {
     $.ajax({
@@ -27,6 +28,7 @@ function uploadFormShowFileProgress(urlstring, formdata) {
             console.log(textStatus);
             $('progress').attr({value:100,max:100});
             $("#percentage").text(100);
+            $("#uploadForm")[0].reset();
 	},
         //error: errorHandler,
         data: formdata,

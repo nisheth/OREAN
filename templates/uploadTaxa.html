@@ -4,14 +4,32 @@
 <h2>Upload a new taxonomy</h2>
 {{msg}}
 
-<form action='{%url "uploadTaxa"%}' method='post'>
+<form id='uploadForm' action='{%url "uploadTaxa"%}' method='post' enctype='multipart/form-data'>
+{%csrf_token%}
 
 <table class='white table'>
-{%csrf_token%}
+{{fileform.as_table}}
 {{form.as_table}}
 </table>
 
 <input type='submit' value='Create New Taxonomy'/>
 </form>
 
+<div id="progress-panel" class="panel panel-default" style="display:none">
+	<div class="panel-heading">
+		<progress max=100 value=0 style="width:100%"></progress>
+		<div class='text-center'><span id='percentage'>0</span> % uploaded</div>
+	</div>
+</div>
+{%endblock%}
+
+{%block js%}
+<script src="{{STATIC_URL}}js/uploadProgress.js"></script>
+<script>
+$("#submit").click(function() {
+	var urlstring = "{%url 'uploadTaxa'%}";
+	var formdata = $new FormData($("#uploadForm")[0]);
+	uploadFormShowFileProgress(urlstring, formdata);
+});
+</script>
 {%endblock%}

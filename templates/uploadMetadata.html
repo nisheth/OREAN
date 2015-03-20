@@ -1,17 +1,16 @@
 {% extends "splash.html" %}
 
-{%block title %}upload analysis{%endblock%}
+{%block title %}upload metadata{%endblock%}
 
 {% block content %}
-<h2>Upload new analysis data</h2>
+<h2>Upload new metadata</h2>
 {{msg}}
 
-<form id='uploadForm' action='{%url "uploadAnalysis"%}' method='post' enctype='multipart/form-data'>
+<form id='uploadForm' action='{%url "uploadMetadata"%}' method='post' enctype='multipart/form-data'>
 {%csrf_token%}
 
 <table class='white table'>
-{{fileform.as_table}}
-{{form.as_table}}
+{{fileform}}
 </table>
 
 <a href='{%url "uploadStatus" %}'><button type='button' class='btn btn-default'/>View upload history</button> </a>
@@ -29,14 +28,9 @@
 {%block js%}
 <script src="{{STATIC_URL}}js/uploadProgress.js"></script>
 <script>
-//$('#id_taxonomy').closest('tr').hide();
-$('#id_use_taxonomy').click(function() {
-	$('#id_taxonomy').closest('tr').toggle();
-});
-
+document.getElementById("id_file").style.margin = "0 auto";
 $('#submit').click(function(){
-    //var urlstring = "/upload/file";
-    var urlstring = "{%url "uploadAnalysis"%}";
+    var urlstring = "{%url "uploadMetadata"%}";
     var formdata = new FormData($('#uploadForm')[0]);
     uploadFormShowFileProgress(urlstring, formdata);
 });

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{%block title %}Upload Status{%endblock%}
+
+{%block content%}
+<div class='container'>
+<h2>Uploaded Files for '{{request.session.projectName}}'</h2>
+
+<table class='table white'>
+<tr><th>File</th><th>Type</th><th>Status</th><th>Results</th><th>Date Uploaded</th><th>Uploaded By</th></tr>
+{%for task in tasks %}
+  <tr>
+	<td>{{task.basename}}</td>
+	<td>{{task.type}}</td>
+        {%if task.feedback.status == "STARTED"%}
+        <td>{{task.feedback.status}}</td>
+        <td>Processing</td>
+        {%elif task.feedback.status == "PENDING"%}
+        <td>{{task.feedback.status}}</td>
+        <td>Queued</td>
+        {%elif task.feedback.status != "SUCCESS"%}
+	<td>{{task.feedback.status}}</td>
+	<td>An unexpected error occurred while processing this file</td>
+	{%elif task.feedback.result.ok%}
+	<td>SUCCESS</td>
+	<td>{{task.feedback.result.rows}} rows</td>
+	{%else%}
+	<td>ERROR</td>
+	<td>{{task.feedback.result.msg.0}}</td>
+	{%endif%}
+	<td>{{task.datestamp}}</td>
+        <td>{{task.user.get_full_name}}</td>
+   </tr>
+{%endfor%}
+{%if user.is_superuser and admintasks%}
+<tr class='active black'><th colspan=6>Taxonomy Uploads - accessible to admin only. Not assiciated with a project</th></tr>
+{%for task in admintasks%}
+  <tr>
+        <td>{{task.basename}}</td>
+	<td>{{task.type}}</td>
+        {%if task.feedback.status == "STARTED"%}
+        <td>{{task.feedback.status}}</td>
+        <td>Processing</td>
+        {%elif task.feedback.status == "PENDING"%}
+        <td>{{task.feedback.status}}</td>
+        <td>Queued</td>
+        {%elif task.feedback.status != "SUCCESS"%}
+        <td>{{task.feedback.status}}</td>
+        <td>An unexpected error occurred while processing this file</td>
+        {%elif task.feedback.result.ok%}
+        <td>SUCCESS</td>
+        <td>{{task.feedback.result.rows}} rows</td>
+        {%else%}
+        <td>ERROR</td>
+        <td>{{task.feedback.result.msg.0}}</td>
+        {%endif%}
+        <td>{{task.datestamp}}</td>
+        <td>{{task.user.get_full_name}}</td>
+   </tr>
+{%endfor%}
+{%endif%}
+</table>
+</div>
+{%endblock%}
+
+{%block js%}
+<script src="{{STATIC_URL}}js/hidePanel.js"></script>
+{%endblock%}

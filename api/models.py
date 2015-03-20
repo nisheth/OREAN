@@ -5,6 +5,7 @@ import random
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from rest_framework.authtoken.models import Token
 
 class GetOrNoneManager(models.Manager):
@@ -202,3 +203,18 @@ class TaxaTree(models.Model):
         index_together = [
             ["taxonomy", "tax_id"],
         ]
+
+class UploadedFile(models.Model):
+
+    FILE_TYPES = (
+ 	('analysis', 'analysis'),
+        ('metadata', 'metadata'),
+        ('taxonomy', 'taxonomy'),
+    )
+
+    type = models.CharField(max_length=255, choices = FILE_TYPES)
+    datestamp = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User)
+    task_id = models.CharField(max_length=255, null=True, blank=True)
+    project = models.ForeignKey(Project, null=True, blank=True)
+    file = models.FileField(upload_to="uploads")

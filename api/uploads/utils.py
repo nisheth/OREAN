@@ -5,7 +5,7 @@ import datetime
 # Check taxa file method
 # Requires a filename and a taxonomy id #
 # returns a dictionary of the following structure
-# {'ok': True/False, 'msgs': [], 'rows': rowcount}
+# {'ok': True/False, 'msg': [], 'rows': rowcount}
 # input file format:
 #Taxa_id	parent_taxa_id	taxa_name	taxa_level
 def checkTaxaFile(file, taxonomy):
@@ -170,6 +170,7 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
                 return resp
         if (count % 10000 == 0): 
             elapsed = (datetime.datetime.now() - start).seconds
+            if elapsed == 0: elapsed = 1
             print >> sys.stderr, "\t%d lines checked of %d [about %d seconds remaining]" % (count, num_lines, (num_lines - count)/(count/elapsed))
 
     print >> sys.stderr, "starting sample validation"
@@ -214,6 +215,7 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
         if (count % 10000 == 0):
             Analysis.objects.bulk_create(batch)
             elapsed = (datetime.datetime.now() - start).seconds
+            if elapsed == 0: elapsed = 1
             print >> sys.stderr, "\t%d rows added of %d [about %d seconds remaining]" % (count, num_lines, (num_lines - count)/(count/elapsed))
             batch = []
     if len(batch) > 0:
@@ -221,4 +223,106 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
     if len(resp['msg']) == 0: resp['ok']=True
     resp['rows'] = count
     fh.close()
+    return resp
+
+def read_input(filename):
+        fh = open(filename, 'rU')
+        tmp = fh.readlines()
+        fh.close()
+        attributes = []
+        for line in tmp:
+            row = line.strip("\n").split("\t")
+            if row[-1] == "": row[-1] = "EMPTY"
+            if len(row) < 4: row.append("EMPTY")
+            attributes.append(row)
+        return attributes
+
+def dateparse(s):
+    formats = ['%Y-%m-%d', '%Y_%m_%d', '%m/%d/%y', '%m-%d-%Y', '%m-%d-%y', '%m/%d/%Y', '%Y-%m-%d']
+    for form in formats:
+        try:
+            s = datetime.datetime.strptime(s, form)
+            return s
+        except:
+            pass
+    return s
+
+def getfieldtype(s):
+    try:
+        s = float(s)
+        return 'DECIMAL'
+    except: pass
+    try:
+        s = dateparse(s)
+        if isinstance(s, datetime.datetime): return 'DATE'
+        else: return 'STRING'
+    except:
+        return 'STRING'
+
+def insertMetadataFromFile(filename, projectID):
+    resp = {'ok': False, 'msg': [], 'rows': 0}
+
+    # Test File input
+    try: 
+        inputdata = read_input(filename)
+    except:
+        resp['msg'].append('Error in accessing file "%s"' % (filename))
+
+    # Test project ID input
+    try: 
+        project = Project.objects.get(pk=int(projectID))                                           # attempt to find the project for the given ID
+    except Project.DoesNotExist: 
+        resp["msg"].append('Project "%s" does not exist' % projectID)      # report if the project ID does not exist
+
+    # Once usable data was input check validity of file contents
+    header = inputdata.pop(0)
+    count = 0
+    typecheck = {}
+    for idx, line in enumerate(inputdata):
+        count+=1
+        # attribute data has 4 columns
+        if len(line) != 4: 
+           resp["msg"].append('File "%s" fails validation. Must be 4 columns. Line: %d. Content: %s' % (filename, count, line))
+           return resp
+        if line[3] not in typecheck: 
+           typecheck[line[2]] = getfieldtype(line[3])
+        elif getfieldtype(line[3]) != typecheck[line[2]]: 
+           resp["msg"].append('File "%s" fails validation. Field "%s" has inconsistent type. Expected a "%s" but found a "%s". Line: %d. Content: %s' % (filename, line[2], typecheck[line[2]], getfieldtype(line[3]), count, line))
+    # Check if entries for these samples already exist and sample formatting
+    samples = list(set(zip(*inputdata)[0]))
+    regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
+    for s in samples:
+        if bool(regex.findall(s)): 
+            resp["msg"].append('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
+        if s[0].isdigit() or s[0] == "_": 
+            resp["msg"].append('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
+        if s[0] == "." and s[1].isdigit(): 
+            resp["msg"].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
+        if Attributes.objects.filter(project = project, sample = s).exists(): 
+            resp["msg"].append('Data exists for sample %s in project %s (%s). Aborting load...' %(s, projectID, project.name) )
+    if len(resp['msg']) != 0:
+        return resp
+    else: 
+        resp['ok'] = True
+        resp['rows'] = count
+
+    # Insert Validated Input into the database for the project
+    for data in inputdata:
+        data[3] = dateparse(data[3])
+        if isinstance(data[3], datetime.datetime): data[3] = data[3].strftime('%Y-%m-%d')
+
+        attributes = Attributes(project  = project,
+                                sample   = data[0],
+                                category = data[1],
+                                field    = data[2],
+                                value    = data[3],
+                               )
+        if not AttributeInfo.objects.filter(project=project, name=attributes.field).exists():
+            newinfo = AttributeInfo(project   = project,
+                                    name      = attributes.field,
+                                    fieldtype = getfieldtype(attributes.value),
+                                    values    = "",
+                                   )
+            newinfo.save()
+        attributes.save()
     return resp
