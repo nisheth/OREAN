@@ -1,13 +1,13 @@
 from api import *
 
 def ListProjects(request):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         queryset = Project.objects.all()
         if request.user.is_superuser: return queryset
         return queryset.filter(userproject__user=request.user.pk)
 
 def ListAttributes(request, params):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         queryset=AttributeInfo.objects.all()
         try:
             pid = int(params.get('projectID', [None])[0])
@@ -19,14 +19,14 @@ def ListAttributes(request, params):
             queryset = queryset.filter(project=pid)
             if len(attr): queryset = queryset.filter(name__in=attr)
             return queryset
-        else: raise APIException('Please provide a projectID (%s) (%s)' % ( params, traceback.format_exc() ))
+        else: raise ParseError('Please provide a projectID')
 
 def ListQueries(request, params):
         queryname = params.get('queryname', [None])[0]
         pid = params.get('projectID', [None])[0]
         full = params.get('full', [None])[0]
 
-	if pid is None: raise APIException('projectID is required')
+	if pid is None: raise ParseError('projectID is required')
 
         queryset = Query.objects.filter(Q(user=request.user) | Q(share=1))
         queryset = queryset.filter(project=pid)
@@ -77,7 +77,7 @@ def BuildQuery(request, params):
             attr = params.get('attribute', [None])[0]
             querydesc = params.get('description', [None])[0]
         except:
-            raise APIException('Error in parsing GET parameters. Check API call.')
+            raise ParseError('Error in parsing GET parameters. Check API call.')
 
         # Verify we have the bare minimum to build a query
         if not pid: raise APIException('GET paramter projectID is required')
@@ -90,16 +90,16 @@ def BuildQuery(request, params):
 
         # Verify we have reasonable information
         try: pid = int(pid)
-        except: raise APIException('GET paramter projectID must be an integer')
+        except: raise ParseError('GET paramter projectID must be an integer')
 
         try: project = Project.objects.get(pk=pid)
-        except: raise APIException("Project with id '%s' does not exist" % pid)
+        except: raise ParseError("Project does not exist")
 
         if not comp in comparisons: raise APIException("Comparison operator '%s' is not supported" %comp)
         if comparisons[comp]['values'] > 1 and not v2: raise APIException("GET param v2 is required to use the operator '%s'" % comp)
 
         try: attrinfo = AttributeInfo.objects.get(project=pid, name=attr)
-        except: raise APIException("The attribute '%s' does not exist." % attr)
+        except: raise ParseError("The attribute '%s' does not exist." % attr)
 
         mycasting = 'STRING'
         if attrinfo.fieldtype == 'DECIMAL': 
@@ -107,14 +107,14 @@ def BuildQuery(request, params):
                 float(v1)
                 if v2 is not None: float(v2)
                 mycasting = 'DECIMAL'
-            except: raise APIException("Decimal values are required for attribute '%s'" % attr)
+            except: raise ParseError("Decimal values are required for attribute '%s'" % attr)
 
         elif attrinfo.fieldtype == 'DATE': 
             try:
                 datetime.datetime.strptime(v1, "%Y-%m-%d")
                 if v2 is not None: datetime.datetime.strptime(v2, "%Y-%m-%d")
                 mycasting = 'DATE'
-            except: raise APIException("Date values are required for attribute '%s'. Please use format YYYY-MM-DD" % attr)
+            except: raise ParseError("Date values are required for attribute '%s'. Please use format YYYY-MM-DD" % attr)
 
         # Now that the data appears acceptable, we need to query for samples based on this criteria
         # Starting working set -  all samples for this project
@@ -151,7 +151,7 @@ def BuildQuery(request, params):
         return queryset
 
 def GetData(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('please provide key or login to fetch data')
+        if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
 
         queryname=pid=attributelist=None
 
@@ -186,7 +186,7 @@ def GetData(request, params={}):
         return array
 
 def ShowDistribution(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('please provide key or login to fetch data')
+        if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
 
         myquery = attr = pid = attrinfo = None
 
@@ -221,7 +221,7 @@ def ShowDistribution(request, params={}):
         return results
 
 def ListDatasets(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         queryset = Analysis.objects.all()
         try: pid = int(params.get('projectID', [None])[0])
         except: pid = None
@@ -233,7 +233,7 @@ def ListDatasets(request, params={}):
         raise APIException("Please Specify a projectID as a GET parameter")
 
 def ListMethods(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         queryset = Analysis.objects.all()
         try:
             pid = int(params.get('projectID', [None])[0])
@@ -249,7 +249,7 @@ def ListMethods(request, params={}):
         raise APIException("Please Specify a projectID and a Dataset as GET parameters")
 
 def ListCategories(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         queryset = Analysis.objects.all()
         try:
             pid = int(params.get('projectID', [None])[0])
@@ -267,7 +267,7 @@ def ListCategories(request, params={}):
         raise APIException("Please Specify a projectID, dataset, and a method as GET parameters")
 
 def GetDataset(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('please provide key or login to fetch data')
+        if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
 
         pid = queryname = dataset = method = category = None
 
@@ -297,7 +297,7 @@ def GetDataset(request, params={}):
         return queryset.order_by('sample')
 
 def MergeQuery(request,params={}):
-        if not request.user.is_authenticated(): raise APIException('please provide key or login to fetch data')
+        if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
 
         pid = params.get('projectID', [None])[0]
         if pid is None: raise APIException('projectID is required')
@@ -413,7 +413,7 @@ def BuildDatasetQuery(request, params={}):
         return queryset
 
 def DeleteQuery(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('please provide key or login to fetch data')
+        if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
         pid = params.get('projectID', [None])[0]
         queryname = params.get('queryname', [None])[0]
         try:
@@ -423,7 +423,7 @@ def DeleteQuery(request, params={}):
         except: raise APIException("No query named '%s' in project '%s' for user '%s'" % (queryname,pid, request.user.username))
 
 def ShareQuery(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('please provide key or login to fetch data')
+        if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
         pid = params.get('projectID', [None])[0]
         queryname = params.get('queryname', [None])[0]
         try:
@@ -435,7 +435,7 @@ def ShareQuery(request, params={}):
         except: raise APIException("No query named '%s' in project '%s' for user '%s'" % (queryname,pid, request.user.username))
 
 def ListTaxa(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         queryset = Analysis.objects.all()
         try:
             pid = int(params.get('projectID', [None])[0])
@@ -453,7 +453,7 @@ def ListTaxa(request, params={}):
         raise APIException("Please Specify a projectID, dataset, method, and category as GET parameters")
 
 def PullAttributeValues(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         pid = params.get('projectID', [None])[0]
         attribute = params.get('attribute', [None])[0]
         try:
@@ -476,7 +476,7 @@ def PullAttributeValues(request, params={}):
             raise APIException("Unable to pull attribute values for %s" % (attribute))
 
 def BuildQueryFromList(request, params={}):
-        if not request.user.is_authenticated(): raise APIException('Please login or provide a valid token')
+        if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         pid = params.get('projectID', [None])[0]
         queryname = params.get('queryname', [None])[0]
         querydesc = params.get('description', [None])[0]

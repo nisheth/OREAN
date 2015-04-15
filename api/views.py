@@ -51,6 +51,7 @@ class ListDatasets(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, *args, **kwargs):
         kwargs = dict(request.QUERY_PARAMS)
+        #kwargs['projectID'] = Project.objects.filter(name__in=kwargs['projectID']).values_list('pk', flat=True)
         queryset = internal.ListDatasets(request, kwargs)
         return Response(queryset)
 
@@ -72,6 +73,7 @@ class ListMethods(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, *args, **kwargs):
         kwargs = dict(request.QUERY_PARAMS)
+        #kwargs['projectID'] = Project.objects.filter(name__in=kwargs['projectID']).values_list('pk', flat=True)
         queryset = internal.ListMethods(request, kwargs)
         return Response(queryset)
 
@@ -82,6 +84,7 @@ class ListCategories(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, *args, **kwargs):
         kwargs = dict(request.QUERY_PARAMS)
+        #kwargs['projectID'] = Project.objects.filter(name__in=kwargs['projectID']).values_list('pk', flat=True)
         queryset = internal.ListCategories(request, kwargs)
         return Response(queryset)
 
@@ -95,6 +98,7 @@ class ListAttributes(generics.ListAPIView):
 
     def get_queryset(self):
         kwargs =  dict(self.request.QUERY_PARAMS)
+        #kwargs['projectID'] = Project.objects.filter(name__in=kwargs['projectID']).values_list('pk', flat=True)
         return internal.ListAttributes(self.request, kwargs)
 
 # Build Query View
@@ -172,6 +176,7 @@ class ListQueries(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, *args, **kwargs):
         kwargs = dict(request.GET) 
+        #kwargs['projectID'] = Project.objects.filter(name__in=kwargs['projectID']).values_list('pk', flat=True)
         return Response(internal.ListQueries(request, kwargs))
 
 class GetData(generics.ListAPIView):
