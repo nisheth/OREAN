@@ -78,7 +78,11 @@
         <li><a href='{% url "pca" %}'>PCA</a></li>
         <li><a href='{% url "analytics" %}'>Analytics</a></li>
 -->
+	{%if user.is_authenticated%}
         <li><a href='{% url "logout" %}'>Sign-out</a></li>
+	{%else%}
+        <li><a href='{% url "login" %}'>Sign-in</a></li>
+	{%endif%}
       </ul>
     </div><!--/.nav-collapse -->
   {%if user.is_superuser%}<a style='top:0; right:0; position:fixed; padding:15px;color:white;' href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench"></span></a>{%endif%}

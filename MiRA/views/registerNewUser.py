@@ -34,7 +34,17 @@ To activate this account, please visit the following url: %s
 Thanks,
 MiRA Staff 
 """ % (new_user.first_name, myurl)
-       send_new_email(request, new_user.email, 'MiRA Account Activation', msg)
+       msg = """
+%s,
+
+This is a message from MiRA. This email address was used on the MiRA webserver. 
+Please visit the following url: %s 
+
+Thanks,
+MiRA Staff 
+""" % (new_user.first_name, myurl)
+       #send_new_email(request, new_user.email, 'MiRA Account Activation', msg)
+       send_new_email(request, new_user.email, 'MiRA', msg)
        messages.add_message(request, messages.SUCCESS, "Registration successful. Check your email to activate the new account.")
        return redirect('home')
     else:
