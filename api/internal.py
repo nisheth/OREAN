@@ -1,8 +1,9 @@
 from api import *
 
-def ListProjects(request):
+def ListProjects(request, public=False):
         if not request.user.is_authenticated(): raise NotAuthenticated('Please login or provide a valid token')
         queryset = Project.objects.all()
+        if public: return queryset.filter(public=True)
         if request.user.is_superuser: return queryset
         return queryset.filter(userproject__user=request.user.pk)
 

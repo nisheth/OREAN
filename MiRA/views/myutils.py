@@ -1,5 +1,6 @@
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
+from django.contrib import messages
 import urllib2
 import urllib
 import traceback
@@ -70,3 +71,18 @@ def topTaxa(querynames, dataset, method, category, LIMIT=20):
     samplelist = list(set(samplelist))
     results = Analysis.objects.filter(dataset=dataset, method=method, category=category).values('entity').annotate(Avg('profile')).order_by('-profile__avg')[:LIMIT]
     return [str(s['entity']) for s in results]
+
+def activateProject(request, project):
+    try:
+      ap = ActiveProject.objects.get_or_none(user=request.user)
+      if ap is None:
+          ap = ActiveProject(user=request.user, project=project)
+      else:
+          ap.project = project
+      ap.save()
+      request.session['projectID'] = project.pk
+      request.session['projectName'] = project.name
+      request.session['projectTimecourse'] = ap.project.is_timecourse()
+      messages.add_message(request, messages.SUCCESS, "Project changed to %s" %project.name)
+    except:
+      messages.add_message(request, messages.ERROR, "Unexpected error while selecting the project (%s)" % traceback.format_exc())

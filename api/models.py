@@ -41,6 +41,7 @@ class Project(models.Model):
     public=models.BooleanField(default=False)
     user=models.ForeignKey(User)
     invitecode = models.CharField(max_length=40, unique=True)
+    objects = GetOrNoneManager()
 
     def __unicode__(self):
        return "%s" % self.name

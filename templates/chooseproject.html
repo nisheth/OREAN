@@ -13,7 +13,7 @@
               <form action="{%url 'chooseproject'%}" method='POST'>{%csrf_token%}
               <select name='project' style="color:black">
 	      {%for project in projects%}
-		<option value="{{project.id}}|{{project.name}}" {%if request.session.projectID == project.id%} selected{%endif%}>{{project.name}}</option>
+		<option value="{{project.id}}" {%if request.session.projectID == project.id%} selected{%endif%}>{{project.name}}</option>
 	      {%endfor%}
 	      </select>
               <br>

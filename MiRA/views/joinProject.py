@@ -22,4 +22,4 @@ def main(request, invitecode=None):
                 messages.add_message(request, messages.SUCCESS, "You have joined this project (%s)."%p.name)    
             except:
                 messages.add_message(request, messages.ERROR, "Unexpected error while attempting to join the project (%s)." %p.name)
-    return redirect('projectPage', p.pk) 
+    return redirect('projectPage', p.invitecode) 
