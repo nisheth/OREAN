@@ -28,9 +28,9 @@
 			{{p}}
 	                <table class='table black'>
 		                <tr><th>Lead</th><td>{{p.user.get_full_name}}</td></tr>
-		                <tr><th>Samples with analysis</th><td>{{p.meta.samplecount}}</td></tr>
-		                <tr><th>Samples with metadata</th><td>{{p.meta.samplecountmeta}}</td></tr>
-		                <tr><th>Metadata fields</th><td>{{p.meta.attrcount}}</td></tr>
+		                <tr><th>Samples with analysis</th><td>{{p.data_samples}}</td></tr>
+		                <tr><th>Samples with metadata</th><td>{{p.attribute_samples}}</td></tr>
+		                <tr><th>Metadata fields</th><td>{{p.attributeinfo_set.count}}</td></tr>
 	                </table>
 			<a href='{%url "publicProjects"%}?enroll={{p.pk}}'><button class='btn btn-primary'>Subscribe</button></a>
 
@@ -41,29 +41,6 @@
 
 </div>
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
-<script src="http://d3js.org/d3.v3.js"></script>
-<script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
-<script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
-<script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
-<script>
-$(window).load(function() {
-  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
-  navWidth = parseInt($('.navbar-nav').css("width"));
-  contWidth = parseInt($('.navbar-collapse').css("width"));
-  padVal = (contWidth-navWidth)/2;
-  $('.navbar-nav').css('padding-left', padVal);
-});
-
-$(window).resize(function() {
-  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
-  navWidth = parseInt($('.navbar-nav').css("width"));
-  contWidth = parseInt($('.navbar-collapse').css("width"));
-  padVal = (contWidth-navWidth)/2;
-  $('.navbar-nav').css('padding-left', padVal);
-});
-</script>
 {%block js %}
 {%endblock%}
 {%endblock%}

@@ -38,6 +38,12 @@ class SubjectMap(models.Model):
 # Project table
 class Project(models.Model):
     name=models.CharField(max_length=255, unique=True)
+    description=models.TextField()
+    attribute_samples = models.IntegerField(default=0)
+    data_samples = models.IntegerField(default=0)
+    publication = models.TextField(null=True, blank=True)
+    publication_url = models.URLField(max_length=255, null=True, blank=True)
+    project_url = models.URLField(max_length=255, null=True, blank=True)
     public=models.BooleanField(default=False)
     user=models.ForeignKey(User)
     invitecode = models.CharField(max_length=40, unique=True)
@@ -106,7 +112,12 @@ class Attributes(models.Model):
     sample = models.CharField(max_length=255)
     category = models.CharField(max_length=255)
     field = models.CharField(max_length=255)
-    value = models.CharField(max_length=255)
+    value = models.CharField(max_length=255, db_index=True)
+
+    class Meta:
+        index_together = [
+                ["project", "sample", "field"],
+        ]
 
 # Analysis based data for projects
 class Analysis(models.Model):

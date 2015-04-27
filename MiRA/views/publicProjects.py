@@ -23,11 +23,5 @@ def enroll(request):
       return redirect('managequeries')
     except:
       messages.add_message(request, messages.ERROR, 'Error during attempted enrollment')
-  for p in publicProjects:
-    meta = dict()
-    meta['samplecount'] = Analysis.objects.filter(project=p).values_list('sample', flat=True).distinct().count()
-    meta['samplecountmeta'] = Attributes.objects.filter(project=p).values_list('sample', flat=True).distinct().count()
-    meta['attrcount'] = AttributeInfo.objects.filter(project=p).count()
-    p.meta = meta
   params['publicProjects'] = publicProjects
   return render(request, 'publicProjects.html', params)

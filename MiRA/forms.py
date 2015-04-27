@@ -39,7 +39,7 @@ class resetPasswordForm(forms.Form):
 class newProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['name', 'public', 'user', 'invitecode']
+        fields = ['name', 'description', 'publication', 'publication_url', 'project_url', 'public', 'user', 'invitecode']
         widgets = {'user': forms.HiddenInput(), 'invitecode': forms.HiddenInput()}
 
 class addUserToProjectForm(forms.Form):

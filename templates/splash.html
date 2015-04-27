@@ -31,29 +31,6 @@
 <div style='clear: both'></div>
 </div>
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
-<script src="http://d3js.org/d3.v3.js"></script>
-<script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
-<script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
-<script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
-<script>
-$(window).load(function() {
-  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
-  navWidth = parseInt($('.navbar-nav').css("width"));
-  contWidth = parseInt($('.navbar-collapse').css("width"));
-  padVal = (contWidth-navWidth)/2;
-  $('.navbar-nav').css('padding-left', padVal);
-});
-
-$(window).resize(function() {
-  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
-  navWidth = parseInt($('.navbar-nav').css("width"));
-  contWidth = parseInt($('.navbar-collapse').css("width"));
-  padVal = (contWidth-navWidth)/2;
-  $('.navbar-nav').css('padding-left', padVal);
-});
-</script>
 {%block js %}
 {%endblock%}
 {%endblock%}

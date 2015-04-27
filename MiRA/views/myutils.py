@@ -86,3 +86,15 @@ def activateProject(request, project):
       messages.add_message(request, messages.SUCCESS, "Project changed to %s" %project.name)
     except:
       messages.add_message(request, messages.ERROR, "Unexpected error while selecting the project (%s)" % traceback.format_exc())
+
+def updateSampleCounts(projectID):
+  try:
+    p = Project.objects.get(pk=projectID)
+    sampleCount = Analysis.objects.filter(project=p).values_list('sample', flat=True).distinct().count()
+    sampleCountMeta = Attributes.objects.filter(project=p).values_list('sample', flat=True).distinct().count()
+    p.attribute_samples = sampleCountMeta
+    p.data_samples = sampleCount
+    p.save()
+    return True
+  except:
+    return False

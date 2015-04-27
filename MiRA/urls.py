@@ -1,4 +1,6 @@
 from django.conf.urls import patterns, include, url
+from django.views.generic import TemplateView
+
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -57,5 +59,8 @@ urlpatterns = patterns('',
     url(r'upload/analysis', 'api.uploads.analysis.main', name='uploadAnalysis'),
     url(r'upload/metadata', 'api.uploads.metadata.main', name='uploadMetadata'),
     url(r'upload/status', 'api.uploads.status.main', name='uploadStatus'),
+
+    # documentation
+    url(r'^documentation$', TemplateView.as_view(template_name='documentation.html'), name='documentation'),
 
 )

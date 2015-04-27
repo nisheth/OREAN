@@ -1,3 +1,4 @@
+from MiRA.views.myutils import updateSampleCounts
 from api.models import *
 import re, sys, traceback, time
 import datetime
@@ -168,6 +169,8 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
             except: 
                 resp['msg'].append('File "%s" fails validation. Unable to find taxa. Line %d. Content: %s' % (filename, count, line))
                 return resp
+        else:
+            taxas[int(line[5])] = None
         if (count % 10000 == 0): 
             elapsed = (datetime.datetime.now() - start).seconds
             if elapsed == 0: elapsed = 1
@@ -220,6 +223,7 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
             batch = []
     if len(batch) > 0:
         Analysis.objects.bulk_create(batch)
+    ok = updateSampleCounts(projectID)
     if len(resp['msg']) == 0: resp['ok']=True
     resp['rows'] = count
     fh.close()
@@ -264,50 +268,61 @@ def insertMetadataFromFile(filename, projectID):
 
     # Test File input
     try: 
-        inputdata = read_input(filename)
+        #inputdata = read_input(filename)
+        fh = open(filename)
     except:
         resp['msg'].append('Error in accessing file "%s"' % (filename))
+        return resp
 
     # Test project ID input
     try: 
         project = Project.objects.get(pk=int(projectID))                                           # attempt to find the project for the given ID
     except Project.DoesNotExist: 
         resp["msg"].append('Project "%s" does not exist' % projectID)      # report if the project ID does not exist
+        return resp
 
     # Once usable data was input check validity of file contents
-    header = inputdata.pop(0)
+    #header = inputdata.pop(0)
+    header = fh.next().strip().split('\t')
     count = 0
     typecheck = {}
-    for idx, line in enumerate(inputdata):
+    validsamples = {}
+    #for idx, line in enumerate(inputdata):
+    for line_str in fh:
         count+=1
+        line = line_str.strip().split('\t')
+	s = line[0]
         # attribute data has 4 columns
         if len(line) != 4: 
-           resp["msg"].append('File "%s" fails validation. Must be 4 columns. Line: %d. Content: %s' % (filename, count, line))
+           resp["msg"].append('File "%s" fails validation. Must be 4 columns. Line: %d. Content: %s' % (filename, count, line_str))
            return resp
         if line[3] not in typecheck: 
            typecheck[line[2]] = getfieldtype(line[3])
         elif getfieldtype(line[3]) != typecheck[line[2]]: 
            resp["msg"].append('File "%s" fails validation. Field "%s" has inconsistent type. Expected a "%s" but found a "%s". Line: %d. Content: %s' % (filename, line[2], typecheck[line[2]], getfieldtype(line[3]), count, line))
-    # Check if entries for these samples already exist and sample formatting
-    samples = list(set(zip(*inputdata)[0]))
-    regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
-    for s in samples:
+        # Check if entries for these samples already exist and sample formatting
+        #samples = list(set(zip(*inputdata)[0]))
+        regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
+        #for s in samples:
+        if s in validsamples: continue
         if bool(regex.findall(s)): 
             resp["msg"].append('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
         if s[0].isdigit() or s[0] == "_": 
             resp["msg"].append('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
         if s[0] == "." and s[1].isdigit(): 
             resp["msg"].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
-        if Attributes.objects.filter(project = project, sample = s).exists(): 
-            resp["msg"].append('Data exists for sample %s in project %s (%s). Aborting load...' %(s, projectID, project.name) )
+        if Attributes.objects.filter(project = project, sample = s, field=line[3]).exists(): 
+            resp["msg"].append('Data exists for field %s for sample %s in project %s (%s). Aborting load...' %(line[3], s, projectID, project.name) )
     if len(resp['msg']) != 0:
         return resp
     else: 
         resp['ok'] = True
         resp['rows'] = count
-
+    fh.seek(0)
+    fh.next()
     # Insert Validated Input into the database for the project
-    for data in inputdata:
+    for line in fh:
+        data = line.strip().split('\t')
         data[3] = dateparse(data[3])
         if isinstance(data[3], datetime.datetime): data[3] = data[3].strftime('%Y-%m-%d')
 
@@ -325,4 +340,84 @@ def insertMetadataFromFile(filename, projectID):
                                    )
             newinfo.save()
         attributes.save()
+    fh.close()
+    ok = updateSampleCounts(projectID)
     return resp
+
+def insertMetadataFromTable(filename, projectID):
+
+    # Test File input
+    try:
+        fh = open(filename, 'U')
+    except:
+        resp['msg'].append('Error in accessing file "%s"' % (filename))
+        return resp
+
+    # Test project ID input
+    try:
+        project = Project.objects.get(pk=int(projectID))                                           # attempt to find the project for the given ID
+    except Project.DoesNotExist:
+        resp["msg"].append('Project "%s" does not exist' % projectID)      # report if the project ID does not exist
+        return resp
+
+    # Once usable data was input check validity of file contents
+    header = fh.next().strip().split('\t') 
+    
+    ctr = 0
+    typecheck = dict()
+    regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
+    for row in fh:
+        ctr+=1
+        line = row.strip().split('\t')
+        s = line[0]
+        if len(line) != len(header):
+            resp["msg"].append('Data row "%d" has a length "%d", which does not match the header length "%d"' % ( ctr, len(line), len(header) ))
+        if bool(regex.findall(s)):
+            resp["msg"].append('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
+        if s[0].isdigit() or s[0] == "_":
+            resp["msg"].append('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
+        if s[0] == "." and s[1].isdigit():
+            resp["msg"].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
+        if Attributes.objects.filter(project = project, sample = s, field__in=line[1:]).exists():
+            resp["msg"].append('Field data exists for sample %s in project %s (%s). Aborting load...' %(line[3], s, projectID, project.name) )
+        for i in range(1, len(line)):
+            field = header[i]
+            value = line[i]
+            if field not in typecheck:
+                typecheck[field] = getfieldtype(value)
+            elif getfieldtype(value) != typecheck[field]:
+                resp["msg"].append('File "%s" fails validation. Field "%s" has inconsistent type. Expected a "%s" but found a "%s". Line: %d. Column %d' % (filename, field, typecheck[field], getfieldtype(value), ctr, i+1))
+
+    if len(resp['msg']) != 0:
+        return resp
+    else:
+        resp['ok'] = True
+        resp['rows'] = ctr 
+    fh.seek(0)
+    fh.next()
+    for row in fh:
+      line = row.strip().split('\t')
+      s = line[0]
+      for i in range(1, len(line)):
+          field = header[i]
+          value = line[i]
+          value = dateparse(value)
+          if isinstance(value, datetime.datetime): value = value.strftime('%Y-%m-%d')
+          attributes = Attributes(project  = project,
+                                  sample   = s,
+                                  category = 'metadata',
+                                  field    = field,
+                                  value    = value,
+                                 )
+          if not AttributeInfo.objects.filter(project=project, name=attributes.field).exists():
+              newinfo = AttributeInfo(project   = project,
+                                      name      = attributes.field,
+                                      fieldtype = getfieldtype(attributes.value),
+                                      values    = "",
+                                     )
+              newinfo.save()
+          attributes.save()
+    fh.close()
+    ok = updateSampleCounts(projectID)
+    return resp
+

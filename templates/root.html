@@ -29,7 +29,7 @@
           <ul class='dropdown-menu'>
             <li><a href='{% url "createProject" %}'>New</a></li>
             <li><a href='{% url "chooseproject" %}'>Choose</a></li>
-            <li><a href='{% url "publicProjects" %}'>View Public</a></li>
+            <li><a href='{% url "publicProjects" %}'>Public Projects</a></li>
             {%if is_project_admin or user.is_superuser %}
             <li><a href='{%url "manageProject"%}'>Manage</a></li>
             <li><a href='{%url "uploadAnalysis"%}'>Upload Analysis Data</a></li>
@@ -71,14 +71,15 @@
             <li><a href='{% url "pca" %}'>PCA</a></li>
           </ul>
         </li>
-<!--        <li><a href='{% url "attributes" %}'>Attributes</a></li>
-        <li><a href='{% url "area" %}'>Profiles</a></li>
-        <li><a href='{% url "16sProfileBoxplot" %}'>Profile Boxplot</a></li>
-        <li><a href='{% url "alpha" %}'>Alpha Diversity</a></li>
-        <li><a href='{% url "beta" %}'>Beta Diversity</a></li>
-        <li><a href='{% url "pca" %}'>PCA</a></li>
-        <li><a href='{% url "analytics" %}'>Analytics</a></li>
--->
+        <li class="dropdown">
+          <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Help <b class='caret'></b></a>
+          <ul class='dropdown-menu'>
+            <li><a href='{% url "alpha" %}'>API</a></li>
+            <li><a href='{% url "beta" %}'>Uploads</a></li>
+            <li><a href='{% url "lefse" %}'>Terminology</a></li>
+            <li><a href='{% url "pca" %}'>Contact</a></li>
+          </ul>
+        </li>
 	{%if user.is_authenticated%}
         <li><a href='{% url "logout" %}'>Sign-out</a></li>
 	{%else%}
@@ -90,8 +91,40 @@
   </div>
 </div>
 
-{%block main%}
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
+<script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
+<script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/js/select2.min.js"></script>
 
+{%block main%}
 {%endblock%}
+
+<script>
+$(window).load(function() {
+  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
+  navWidth = parseInt($('.navbar-nav').css("width"));
+  contWidth = parseInt($('.navbar-collapse').css("width"));
+  padVal = (contWidth-navWidth)/2;
+  $('.navbar-nav').css('padding-left', padVal);
+});
+
+$(window).resize(function() {
+  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
+  navWidth = parseInt($('.navbar-nav').css("width"));
+  contWidth = parseInt($('.navbar-collapse').css("width"));
+  padVal = (contWidth-navWidth)/2;
+  $('.navbar-nav').css('padding-left', padVal);
+});
+
+$("#sidebar-toggle-element").click(function() {
+        $("#sidebar-arrow").toggleClass("glyphicon-arrow-down").toggleClass("glyphicon-arrow-up");
+});
+</script>
+
+
+
 </body>
 </html>
