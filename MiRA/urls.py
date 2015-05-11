@@ -19,9 +19,12 @@ urlpatterns = patterns('',
 
     # GUI frontend
     url(r'^$', 'MiRA.views.home.main', name='home'),
+    url(r'^taxaInvestigator$', 'MiRA.views.taxaInvestigator.getRareTaxa', name='taxaInvestigator'),
     url(r'^attributes', 'MiRA.views.attributes.main', name='attributes'),
     url(r'^16sProfileBoxplot', 'MiRA.views.16sProfileBoxplot.main', name='16sProfileBoxplot'),
     url(r'^stackedbars', 'MiRA.views.stackedbars.main', name='stackedbars'),
+    url(r'^clustering', 'MiRA.views.clustering.manager', name='clustering'),
+    url(r'^heatmap', 'MiRA.views.heatmap.manager', name='heatmap'),
     url(r'^area', 'MiRA.views.area.main', name='area'),
     url(r'^analytics', 'MiRA.views.analytics.main', name='analytics'),
     url(r'^createProject', 'MiRA.views.createProject.main', name='createProject'), 

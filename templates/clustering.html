@@ -1,0 +1,64 @@
+{%extends "base.html"%}
+
+{%block title%}Clustering{%endblock%}
+
+{%block sidebar%}
+    <h2>Cluster Samples</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form action='{%url "clustering"%}' method='post'>{%csrf_token%} 
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>     
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+       <hr><legend>Select an Attribute</legend>
+       <select name='attribute'>
+       <option value="">---</option>
+       {%for attr in attributes %}
+       <option rel="{{attr.project}}" value="{{attr.name}}" {%if attr.name == selectedattr%} selected{%endif%}>{{attr.name}}</option>
+       {%endfor%}
+       </select><br>
+    </form>
+    <button id='plotrender'>View</button> 
+{%endblock%}
+
+
+{%block content%}
+<div id='chart'></div>
+{%endblock%}
+
+{%block js%}
+<script>
+function runajax(form, chart) {
+        $("div#content").block({message: '<h3><img src="{{STATIC_URL}}img/busy.gif" /> Processing...</h3>'}); 
+        $.ajax({
+            type: form.attr('method'),
+            url: form.attr('action'),
+            data: form.serialize()+"&format=json",
+            dataType: 'json',
+            success: function (data) {
+	        $("#chart").empty();
+                
+		$("#chart").append("<object width='100%' height='75%' data='"+data+"'><div class='alert alert-danger messagebin text-center' role='alert' style='width: 50%; margin: 0 auto;'>Please verify all fields were completed</div></object>");
+            },
+            complete: function() { 
+                    // unblock when remote call returns 
+                    $("div#content").unblock();  
+            }, 
+        });
+}
+
+var frm = $('form');
+$('#plotrender').click(function() {
+	runajax(frm, $('#chart'));
+});
+</script>
+
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
+{%endblock%}

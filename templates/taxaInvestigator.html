@@ -1,0 +1,35 @@
+{%extends "base.html" %}
+
+{%block sidebar%}
+    <h2>Taxonomy Investigation</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form action='{%url "taxaInvestigator"%}' method='post'>{%csrf_token%}
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+       <hr><legend>Search Criteria</legend>
+	<table>
+		<tr><th><label for="minthresh">Minimum quantity:</label></th><td><input min="0" max="100" value=0 type='number' id='minthresh'/></td></tr>
+		<tr><th><label for="maxthresh">Maximum quantity:</label></th><td><input min="0" max="100" {%if maxthresh%}value={{maxthresh}}{%endif%} type='number' id='maxthresh'/></td></tr>
+		<tr><th><label for="minSamplePerc">Minimum % of samples with Taxa:</label></th><td><input min="0" max="100" value=50 type='number' id='minSamplePerc'/></td></tr>
+		<tr><th><label for="maxSamplePerc">Maximum % of samples with Taxa:</label></th><td><input min="0" max="100" value=100 type='number' id='maxSamplePerc'/></td></tr>
+	</table>
+    <input type='submit'/>
+    </form>
+{%endblock%}
+
+{%block content%}
+{{rareTaxa}}
+{%endblock%}
+
+{%block js%}
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
+{%endblock%}

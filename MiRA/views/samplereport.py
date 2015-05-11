@@ -57,8 +57,13 @@ def krona(request):
        array=Analysis.objects.filter(project=request.session['projectID'], sample=sample).order_by('taxatree').select_related()
        root = None
        for row in array:
-         ft = row.taxatree.full_tree
-         taxaArray = ft.split('|')
+         if row.taxatree:
+           ft = row.taxatree.full_tree
+           taxaArray = ft.split('|')
+         else:
+           taxaArray=["root", row.entity]
+           root="1|root"
+           childHash[root] = {}
          level = len(taxaArray)
          key="%d|%s" % (level, taxaArray[-1])
          if level >= 2:

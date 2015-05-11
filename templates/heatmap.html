@@ -1,0 +1,228 @@
+{%extends "base.html"%}
+
+{%block title%}Heatmap{%endblock%}
+
+{%block header%}
+<style type='text/css'>
+table.heatmap td:hover {
+	border: 5px solid black; !important;
+}
+</style>
+{%endblock%}
+
+{%block sidebar%}
+    <h2>Heatmap</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form action='{%url "heatmap"%}' method='post'>{%csrf_token%} 
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>     
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+    </form>
+    <button id='plotrender'>View</button> 
+{%endblock%}
+
+
+{%block content%}
+<div id='chart'></div>
+{%endblock%}
+
+{%block js%}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/data.js"></script>
+<script src="http://code.highcharts.com/modules/heatmap.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+<script>
+var testScale;
+
+function createHeatmap(heatmapdata) {
+	var heatmap = heatmapdata.data;
+
+	var forChart = [];
+
+	var height = 150 * heatmap[0].length;
+
+	for(i=0; i < heatmap.length; i++) {
+		for (j=0; j < heatmap[i].length; j++) {
+			forChart.push([j, i, heatmap[i][j]]);
+		}
+	}
+
+$(function () {
+
+    /**
+     * This plugin extends Highcharts in two ways:
+     * - Use HTML5 canvas instead of SVG for rendering of the heatmap squares. Canvas
+     *   outperforms SVG when it comes to thousands of single shapes.
+     * - Add a K-D-tree to find the nearest point on mouse move. Since we no longer have SVG shapes
+     *   to capture mouseovers, we need another way of detecting hover points for the tooltip.
+     */
+    (function (H) {
+        var Series = H.Series,
+            each = H.each,
+            wrap = H.wrap,
+            seriesTypes = H.seriesTypes;
+
+        /**
+         * Create a hidden canvas to draw the graph on. The contents is later copied over 
+         * to an SVG image element.
+         */
+        Series.prototype.getContext = function () {
+            if (!this.canvas) {
+                this.canvas = document.createElement('canvas');
+                this.canvas.setAttribute('width', this.chart.chartWidth);
+                this.canvas.setAttribute('height', this.chart.chartHeight);
+                this.image = this.chart.renderer.image('', 0, 0, this.chart.chartWidth, this.chart.chartHeight).add(this.group);
+                this.ctx = this.canvas.getContext('2d');
+            }
+            return this.ctx;
+        };
+
+        /** 
+         * Draw the canvas image inside an SVG image
+         */ 
+        Series.prototype.canvasToSVG = function () {
+            this.image.attr({ href: this.canvas.toDataURL('image/png') });
+        };
+
+        /**
+         * Wrap the drawPoints method to draw the points in canvas instead of the slower SVG,
+         * that requires one shape each point.
+         */
+        H.wrap(H.seriesTypes.heatmap.prototype, 'drawPoints', function (proceed) {
+
+            var ctx = this.getContext();
+            
+            if (ctx) {
+
+                // draw the columns
+                each(this.points, function (point) {
+                    var plotY = point.plotY,
+                        shapeArgs;
+
+                    if (plotY !== undefined && !isNaN(plotY) && point.y !== null) {
+                        shapeArgs = point.shapeArgs;
+
+                        ctx.fillStyle = point.pointAttr[''].fill;
+                        ctx.fillRect(shapeArgs.x, shapeArgs.y, shapeArgs.width, shapeArgs.height);
+                    }
+                });
+
+                this.canvasToSVG();
+
+            } else {
+                this.chart.showLoading("Your browser doesn't support HTML5 canvas, <br>please use a modern browser");
+
+                // Uncomment this to provide low-level (slow) support in oldIE. It will cause script errors on
+                // charts with more than a few thousand points.
+                //proceed.call(this);
+            }
+        });
+    }(Highcharts));
+
+
+    var start;
+    $('#chart').highcharts({
+
+        chart: {
+            type: 'heatmap',
+            height: height,
+            margin: [80, 20, 20, 200]
+        },
+
+
+        title: {
+            text: 'Heatmap',
+            align: 'left',
+            x: 40
+        },
+
+        subtitle: {
+            text: 'plotting ' + heatmap.length +" samples",
+            align: 'left',
+            x: 40
+        },
+
+        xAxis: {
+	    opposite: true,
+	    categories: heatmapdata.cols
+        },
+
+        yAxis: {
+            categories: heatmapdata.rows, 
+            title: null
+        },
+
+        colorAxis: {
+            stops: [
+                [0, '#3060cf'],
+                [0.5, '#fffbbc'],
+                [0.9, '#c4463a'],
+                [1, '#c4463a']
+            ],
+            min: heatmapdata.minVal,
+            max: heatmapdata.maxVal,
+            startOnTick: false,
+            endOnTick: false,
+        },
+
+	legend: {
+	    verticalAlign: "top",
+	},
+
+	tooltip: {
+            formatter: function () {
+                return '<b>Entity: </b>' + this.series.xAxis.categories[this.point.x] + '<br><b>Sample: </b>' +
+                    this.series.yAxis.categories[this.point.y] + '<br><b>Scaled value: </b>' + this.point.value;
+            }
+        },
+
+        series: [{
+	    data: forChart,
+            borderWidth: 0,
+            nullColor: '#EFEFEF',
+            turboThreshold: Number.MAX_VALUE // #3404, remove after 4.0.5 release
+        }]
+
+    });
+    console.log('Rendered in ' + (new Date() - start) + ' ms');
+
+});
+
+}
+
+function runajax(form, chart) {
+        $("div#content").block({message: '<h3><img src="{{STATIC_URL}}img/busy.gif" /> Processing...</h3>'}); 
+        $.ajax({
+            type: form.attr('method'),
+            url: form.attr('action'),
+            data: form.serialize()+"&format=json",
+            dataType: 'json',
+            success: function (data) {
+		$("#chart").empty();
+		console.log(data);
+		createHeatmap(data);
+            },
+            complete: function() { 
+                    // unblock when remote call returns 
+                    $("div#content").unblock();  
+            }, 
+        });
+}
+
+var frm = $('form');
+$('#plotrender').click(function() {
+	runajax(frm);
+});
+</script>
+
+<script src="{{STATIC_URL}}js/mira_analysis.js"></script>
+{%endblock%}
