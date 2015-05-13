@@ -148,7 +148,7 @@ function arraytotable (myarr, header) {
   return "<tr>"+tblrow+"</tr>";
 }
 var cf;
-var headers;
+var header;
 var chartobjs = {};
 
 function preparedims (keys) {
@@ -160,6 +160,7 @@ function preparedims (keys) {
 
 function formatdata() {
     tmp = chartobjs[header[0]].top(Infinity);
+    console.log(tmp);
     $("#samplecount").text("Samples with current filters: "+cf.groupAll().value());
     $("#modalnumsamples").text("This query would contain "+cf.groupAll().value()+" samples.");
     myobj = {};
@@ -196,7 +197,6 @@ $("#submit").click(function() {
   for (var i=0; i < choices.length; i++) {
     attrstring+="&attribute="+choices[i].text;
   }
-
   $.ajax({
     url: '{%url "GetData"%}',
     data: "projectID="+pid+"&queryname="+$("#queryselect").val()+attrstring,
@@ -222,7 +222,6 @@ $("#submit").click(function() {
     },
     dataType: 'json',
   });
-
 });
 
 var chart;

@@ -19,7 +19,7 @@ urlpatterns = patterns('',
 
     # GUI frontend
     url(r'^$', 'MiRA.views.home.main', name='home'),
-    url(r'^taxaInvestigator$', 'MiRA.views.taxaInvestigator.getRareTaxa', name='taxaInvestigator'),
+    url(r'^entityInvestigation$', 'MiRA.views.taxaInvestigator.getRareTaxa', name='taxaInvestigator'),
     url(r'^attributes', 'MiRA.views.attributes.main', name='attributes'),
     url(r'^16sProfileBoxplot', 'MiRA.views.16sProfileBoxplot.main', name='16sProfileBoxplot'),
     url(r'^stackedbars', 'MiRA.views.stackedbars.main', name='stackedbars'),

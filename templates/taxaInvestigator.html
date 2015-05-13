@@ -1,10 +1,12 @@
 {%extends "base.html" %}
 
+{%block title %}Entity Investigation{%endblock%}
+
 {%block sidebar%}
-    <h2>Taxonomy Investigation</h2>
+    <h2>Entity Investigation</h2>
     <hr>
     <legend>Select a Query</legend>
-    <form action='{%url "taxaInvestigator"%}' method='post'>{%csrf_token%}
+    <form id='taxaform' action='{%url "taxaInvestigator"%}' method='post'>{%csrf_token%}
        <select name='query'>
        <option value="">---</option>
        {%for query in queries %}
@@ -16,20 +18,90 @@
        <hr><legend>Select a Method</legend><select name='method'></select><br>
        <hr><legend>Select a Category</legend><select name='category'></select><br>
        <hr><legend>Search Criteria</legend>
-	<table>
-		<tr><th><label for="minthresh">Minimum quantity:</label></th><td><input min="0" max="100" value=0 type='number' id='minthresh'/></td></tr>
-		<tr><th><label for="maxthresh">Maximum quantity:</label></th><td><input min="0" max="100" {%if maxthresh%}value={{maxthresh}}{%endif%} type='number' id='maxthresh'/></td></tr>
-		<tr><th><label for="minSamplePerc">Minimum % of samples with Taxa:</label></th><td><input min="0" max="100" value=50 type='number' id='minSamplePerc'/></td></tr>
-		<tr><th><label for="maxSamplePerc">Maximum % of samples with Taxa:</label></th><td><input min="0" max="100" value=100 type='number' id='maxSamplePerc'/></td></tr>
+	<table id='searchcriteria'>
+		<tr><th><label for="minthresh">Minimum relative quantity:</label></th><td><input min="0" max="100" value=0 type='number' name='minthresh' id='minthresh'/></td></tr>
+		<tr><th><label for="maxthresh">Maximum relative quantity:</label></th><td><input min="0" max="100" value=5 type='number' name='maxthresh' id='maxthresh'/></td></tr>
+		<tr><th><label for="minSamplePerc">Minimum % of samples with Entity:</label></th><td><input min="0" max="100" value=50 type='number' name='minSamplePerc' id='minSamplePerc'/></td></tr>
+		<tr><th><label for="maxSamplePerc">Maximum % of samples with Entity:</label></th><td><input min="0" max="100" value=100 type='number' name='maxSamplePerc' id='maxSamplePerc'/></td></tr>
 	</table>
-    <input type='submit'/>
+	<p id='criteriastatement'> The current criteria will return entities present in at least 50% of samples but no more than 100% of samples and where no single sample in the queryset contains a relative quantity below 0 or above 5.</p>
     </form>
+    <button id='submitbutton' type='button' class='btn btn-primary'>Submit</button>
 {%endblock%}
 
 {%block content%}
-{{rareTaxa}}
+<div id='mycontainer' class='container-fluid'>
+  <div class='row'>
+    <div class='col-xs-2'>
+      <table id='submissionExtraInfo' class='table white' style='display: none'>
+      </table>
+    </div>
+    <div class='col-xs-10'>
+      <table id='rareResultsTable' class='table sortable white' style='display: none'>
+        <thead>
+          <tr><th>Entity</th>
+              <th>Minimum Relative Quantity</th>
+              <th>Maximum Relative Quantity</th>
+              <th>Sample Count</th>
+              <th>Percent of Query</th>
+          </tr>
+        </thead>
+        <tbody id='tablebody'>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {%endblock%}
 
 {%block js%}
 <script src="{{STATIC_URL}}js/mira_analysis.js"></script>
+<script>
+$("#submitbutton").click(function() {
+	var form = $("#taxaform");
+	formdata = $(form).serialize();
+	var request = $.ajax({
+            url: "{%url 'taxaInvestigator'%}",
+            method: "POST",
+            data: formdata,
+            dataType: "json"
+          });
+        request.done(function( resp ) {
+	  console.log(resp);
+	  $("#submissionExtraInfo").empty();
+	  $("#tablebody").empty();
+	  for (i=0; i < resp.rareTaxa.length; i++) {
+	    var newTableRow = "<tr>";         
+	    newTableRow += "<td>"+resp.rareTaxa[i][0]+"</td>";         
+	    newTableRow += "<td>"+resp.rareTaxa[i][1]+"</td>";         
+	    newTableRow += "<td>"+resp.rareTaxa[i][2]+"</td>";         
+	    newTableRow += "<td>"+resp.rareTaxa[i][3]+"</td>";         
+	    newTableRow += "<td>"+ ((100.0 *resp.rareTaxa[i][3]) / resp.numSamples).toFixed(2) +"</td>";         
+	    newTableRow += "</tr>";         
+	    $("#tablebody").append(newTableRow);
+	  }
+	  $("#submissionExtraInfo").append("<tr><th>Chosen Query</th><td>" + $("[name=query]").val() + "</td></tr>");
+	  $("#submissionExtraInfo").append("<tr><th>Samples in Query</th><td>" + resp.numSamples + "</td></tr>");
+	  $("#submissionExtraInfo").append("<tr><th>Minimum sample count</th><td>" + Math.round(resp.minSampleCount) + "</td></tr>");
+	  $("#submissionExtraInfo").append("<tr><th>Maximum sample count</th><td>" + Math.round(resp.maxSampleCount) + "</td></tr>");
+	  $("#submissionExtraInfo").append("<tr><th>Number of results</th><td>" + resp.rareCandidates + "</td></tr>");
+	  $("#submissionExtraInfo").show();
+	  $("#rareResultsTable").show();
+        });
+           
+        request.fail(function( jqXHR, textStatus ) {
+	  var closebutton = "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>";
+          $('#mycontainer').prepend("<div class='alert alert-danger alert-dismissible text-center' role='alert' style='width: auto'>"+closebutton+"The submission returned an error: '" + textStatus+"'. Please check that the input form was completed properly.</div>" );
+        });
+});
+
+$("#searchcriteria input").change(function() {
+	var minthresh = Number($("#minthresh").val());
+	var maxthresh = Number($("#maxthresh").val());
+	var minSamplePerc = Number($("#minSamplePerc").val());
+	var maxSamplePerc = Number($("#maxSamplePerc").val());
+	var newstatement = "The current criteria will return entities present in at least "+minSamplePerc+"% of samples but no more than "+maxSamplePerc+"% of samples and where no single sample in the queryset contains a relative quantity below "+minthresh+" or above "+maxthresh+".";
+	$("#criteriastatement").text(newstatement);
+});
+</script>
 {%endblock%}

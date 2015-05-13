@@ -12,4 +12,6 @@ def main(request):
     params = {}
     params['queries'] = internal.ListQueries(request, {'projectID': [request.session['projectID']]})
     params['attributes'] = sorted([x.name for x in internal.ListAttributes(request, {'projectID': [request.session['projectID']]})])
+    if request.GET.get('comparison', False):
+        return render(request, 'visualComparison.html', params)
     return render(request, 'analytics.html', params)

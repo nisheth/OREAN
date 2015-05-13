@@ -6,6 +6,17 @@
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/css/select2.min.css" />
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-62931735-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
 {%block header%}
 {%endblock%}
 </head>
@@ -52,6 +63,7 @@
           <ul class='dropdown-menu'>
             <li><a href='{% url "attributes" %}'>Bar Chart</a></li>
             <li><a href='{% url "analytics" %}'>Visual Explorer</a></li>
+            <li><a href='{% url "analytics" %}?comparison=True'>Visual Comparison</a></li>
           </ul>
         </li>
         <li class="dropdown">
@@ -60,6 +72,7 @@
             <li><a href='{% url "stackedbars" %}'>Stacked Bars</a></li>
             <li><a href='{% url "16sProfileBoxplot" %}'>Boxplot</a></li>
             <li><a href='{% url "samplereport" %}'>Sample</a></li>
+            <li><a href='{% url "taxaInvestigator" %}'>Entity investigation</a></li>
           </ul>
         </li>
         <li class="dropdown">
@@ -92,6 +105,13 @@
   {%if user.is_superuser%}<a style='top:0; right:0; position:fixed; padding:15px;color:white;' href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench"></span></a>{%endif%}
   </div>
 </div>
+
+
+<nav class="navbar navbar-inverse navbar-fixed-bottom" style='height: 25px; min-height: 25px;'>
+  <div class="navbar-header white" style='width: 100%'>
+    <p class='text-center' style='margin-top: 5px; margin-bottom: 5px'>MiRA 2015</p>
+  </div>
+</nav>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
