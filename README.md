@@ -1,4 +1,4 @@
-MiRA
+OREAN
 ====
+Omics REsearch ANalytics
 
-Microbiome Research Analytics
