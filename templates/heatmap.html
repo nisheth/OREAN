@@ -14,7 +14,7 @@ table.heatmap td:hover {
     <h2>Heatmap</h2>
     <hr>
     <legend>Select a Query</legend>
-    <form action='{%url "heatmap"%}' method='post'>{%csrf_token%} 
+    <form id='submitform' action='{%url "heatmap"%}' method='post'>{%csrf_token%} 
        <select name='query'>
        <option value="">---</option>
        {%for query in queries %}
@@ -218,7 +218,7 @@ function runajax(form, chart) {
         });
 }
 
-var frm = $('form');
+var frm = $('#submitform');
 $('#plotrender').click(function() {
 	runajax(frm);
 });

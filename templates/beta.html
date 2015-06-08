@@ -3,7 +3,7 @@
 {%block title%}Beta Diversity{%endblock%}
 
 {%block sidebar%}
-<form method='GET' action="{%url 'beta'%}">
+<form id='submitform' method='GET' action="{%url 'beta'%}">
        <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
        <hr><legend>Select a Method</legend><select name='method'></select><br>
        <hr><legend>Select a Category</legend><select name='category'></select><br>
@@ -129,7 +129,7 @@ function loadchart(data) {
 
 function getdiversity(selectedItem) {
     $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
-    var form = $('form');
+    var form = $('#submitform');
     $.ajax({
         type: form.attr('method'),
         url: form.attr('action'),

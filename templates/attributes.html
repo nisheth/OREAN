@@ -6,7 +6,7 @@
         <h2>Plot Attributes</h2>
           <hr>
           <legend>Select a Query</legend>
-          <form action='{%url "attributes"%}' method='post'>{%csrf_token%}
+          <form id='submitform' action='{%url "attributes"%}' method='post'>{%csrf_token%}
              <select id='querychoice' name='query'>
              <option value="">---</option>
              {%for query in queries %}
@@ -60,7 +60,7 @@ $("#querychoice").change(function() {
    console.log($(this).find("option:selected").text());
 });
 
-var frm = $('form');
+var frm = $('#submitform');
     $('#plotrender').click(function (ev) {
       if ($('form select[name=query]').val() && $('form select[name=attribute]').val()) {
         $.ajax({

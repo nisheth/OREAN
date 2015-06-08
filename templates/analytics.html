@@ -4,7 +4,7 @@
 
 {%block sidebar%}
 <legend>Select a Query</legend>
-<form action='#' method='GET'>{%csrf_token%}
+<form id='submitform' action='#' method='GET'>{%csrf_token%}
    <select id='queryselect' name='query'>
    <option value="">---</option>
    {%for query in queries %}

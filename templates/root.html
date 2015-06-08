@@ -1,11 +1,38 @@
 <html>
 <head>
-<title>MiRA: {%block title%}{%endblock%}</title>
+<title>OREAN: {%block title%}{%endblock%}</title>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/nv.d3.css" />
 <link rel="stylesheet" href="{{STATIC_URL}}css/custom.css" />
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/css/select2.min.css" />
+<style>
+
+.projectFeature {
+padding-left:10px; 
+padding-right: 10px;
+border-radius: 25px 25px 25px 25px; 
+text-align: center; 
+background: #FFF; 
+color: #000;
+}
+
+.projectSelectItem:hover {
+background: #D1D1D1; 
+border-radius: 25px 25px 25px 25px;
+}
+/*
+.navbar .navbar-nav {
+    display: inline-block;
+    float: none;
+}
+
+.navbar .navbar-collapse {
+    text-align: center;
+}
+*/
+</style>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -13,7 +40,8 @@
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-62931735-1', 'auto');
+  //ga('create', 'UA-62931735-1', 'auto');
+  ga('create', 'UA-62931735-1', 'bioinfora.com');
   ga('send', 'pageview');
 </script>
 
@@ -23,8 +51,8 @@
 
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-  <div class="container text-center">
-      <a class="navbar-brand" style='top:0; left:15; position:fixed; padding:15px;' href="{%url 'home'%}">MiRA</a>
+  <div class="container-fluid text-center">
+    <a class="navbar-brand" href="{%url 'home'%}">OREAN</a>
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
         <span class="sr-only">Toggle navigation</span>
@@ -39,7 +67,7 @@
           <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Project <b class='caret'></b></a>
           <ul class='dropdown-menu'>
             <li><a href='{% url "createProject" %}'>New</a></li>
-            <li><a href='{% url "chooseproject" %}'>Choose</a></li>
+            <!--<li><a href='{% url "chooseproject" %}'>Choose</a></li>-->
             <li><a href='{% url "publicProjects" %}'>Public Projects</a></li>
             {%if is_project_admin or user.is_superuser %}
             <li><a href='{%url "manageProject"%}'>Manage</a></li>
@@ -70,6 +98,7 @@
           <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Data <b class='caret'></b></a>
           <ul class='dropdown-menu'>
             <li><a href='{% url "stackedbars" %}'>Stacked Bars</a></li>
+            <li><a href='{% url "ideastackedbars" %}'>Stacked Bars - V2</a></li>
             <li><a href='{% url "16sProfileBoxplot" %}'>Boxplot</a></li>
             <li><a href='{% url "samplereport" %}'>Sample</a></li>
             <li><a href='{% url "taxaInvestigator" %}'>Entity investigation</a></li>
@@ -89,31 +118,43 @@
         <li class="dropdown">
           <a href="#" class='dropdown-toggle' data-toggle='dropdown'>Help <b class='caret'></b></a>
           <ul class='dropdown-menu'>
-            <li><a href='{% url "alpha" %}'>API</a></li>
-            <li><a href='{% url "beta" %}'>Uploads</a></li>
-            <li><a href='{% url "lefse" %}'>Terminology</a></li>
-            <li><a href='{% url "pca" %}'>Contact</a></li>
+            <li><a href='{% url "documentation" %}#about'>About</a></li>
+            <li><a href='{% url "documentation" %}#uploads'>Uploads</a></li>
+            <li><a href='{% url "documentation" %}#terminology'>Terminology</a></li>
+            <li><a href='{% url "documentation" %}#contact'>Contact</a></li>
           </ul>
         </li>
 	{%if user.is_authenticated%}
-        <li><a href='{% url "logout" %}'>Sign-out</a></li>
+        <li><a href='{% url "logout" %}'>Sign-out ({{user.first_name}})</a></li>
 	{%else%}
         <li><a href='{% url "login" %}'>Sign-in</a></li>
 	{%endif%}
       </ul>
+      {%if user.is_superuser%}
+      <a class="navbar-text navbar-right" href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench white"></span></a>
+      {%endif%}
+      {% if user.is_authenticated and request.session.projectName%}
+      <div class='navbar-text navbar-right projectFeature'><!-- style='padding-left:10px; padding-right: 10px;border-radius: 25px 25px 25px 25px; text-align: center; background: #FFF; color: #000;'>-->
+        <a class='black' href='#' id='projectPopover' data-placement="bottom">Project: {{request.session.projectName}} <span class="glyphicon glyphicon-chevron-down"></span></a>
+        <div id="projectPopoverContent" style="display: none">
+                {%for project in available_projects%}
+                <p><form class='projectSelectItem' action="{%url 'chooseproject'%}" method="POST">{%csrf_token%}<input type='hidden' name='goto' value="{{request.get_full_path|urlencode}}"/><input type='hidden' name='project' value="{{project.pk}}"/><button class='btn btn-link'>{{project.name}}</button></form></p>
+                {%endfor%}
+        </div>
+      </div>
+      {%endif%}
     </div><!--/.nav-collapse -->
-  {%if user.is_superuser%}<a style='top:0; right:0; position:fixed; padding:15px;color:white;' href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench"></span></a>{%endif%}
   </div>
 </div>
 
-
 <nav class="navbar navbar-inverse navbar-fixed-bottom" style='height: 25px; min-height: 25px;'>
   <div class="navbar-header white" style='width: 100%'>
-    <p class='text-center' style='margin-top: 5px; margin-bottom: 5px'>MiRA 2015</p>
+    <p class='text-center' style='margin-top: 5px; margin-bottom: 5px'>OREAN 2015</p>
   </div>
 </nav>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
 <script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
@@ -125,6 +166,18 @@
 {%endblock%}
 
 <script>
+$(function(){
+    
+    $("#projectPopover").popover({
+        html : true, 
+        content: function() {
+          return $('#projectPopoverContent').html();
+        },
+        title: '<b>Available Projects</b>'
+    });
+
+});
+/*
 $(window).load(function() {
   $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
   navWidth = parseInt($('.navbar-nav').css("width"));
@@ -132,15 +185,7 @@ $(window).load(function() {
   padVal = (contWidth-navWidth)/2;
   $('.navbar-nav').css('padding-left', padVal);
 });
-
-$(window).resize(function() {
-  $('body').css('padding-top', parseInt($('.navbar-fixed-top').css("height")));
-  navWidth = parseInt($('.navbar-nav').css("width"));
-  contWidth = parseInt($('.navbar-collapse').css("width"));
-  padVal = (contWidth-navWidth)/2;
-  $('.navbar-nav').css('padding-left', padVal);
-});
-
+*/
 $("#sidebar-toggle-element").click(function() {
         $("#sidebar-arrow").toggleClass("glyphicon-arrow-down").toggleClass("glyphicon-arrow-up");
 });

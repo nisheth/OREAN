@@ -163,14 +163,16 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
         # try to find taxa if applicable
         if taxonomy:
             try: 
-                tax_id = int(line[5])
+                #tax_id = int(line[5])
+                tax_id = line[5]
                 if tax_id not in taxas:
                    taxas[tax_id] = TaxaTree.objects.get(taxonomy=taxonomy, tax_id=int(line[5]))
             except: 
                 resp['msg'].append('File "%s" fails validation. Unable to find taxa. Line %d. Content: %s' % (filename, count, line))
                 return resp
         else:
-            taxas[int(line[5])] = None
+            #taxas[int(line[5])] = None
+            taxas[line[5]] = None
         if (count % 10000 == 0): 
             elapsed = (datetime.datetime.now() - start).seconds
             if elapsed == 0: elapsed = 1
@@ -209,7 +211,8 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
                             method   = data[2],
                             category = data[3],
                             entity   = data[4],
-                            taxatree = taxas[int(data[5])],
+                            #taxatree = taxas[int(data[5])],
+                            taxatree = taxas[data[5]],
                             numreads = int(data[6]),
                             profile  = float(data[7]),
                             avgscore = float(data[8]),

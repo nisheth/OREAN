@@ -10,11 +10,12 @@ def main(request):
     params = {}
     params['projects'] = internal.ListProjects(request)
     if request.method=='POST':
-        projectID = request.POST.get('project')
+        projectID = request.POST.get('project', 0)
+        goto = request.POST.get('goto', 'managequeries')
         project=Project.objects.get_or_none(pk=int(projectID))
         if not project:
             messages.add_message(request, messages.ERROR, "Unable to find the project")
             return redirect('home')
         myutils.activateProject(request, project)
-        return redirect('managequeries')
+        return redirect(goto)
     return render(request, 'chooseproject.html', params)

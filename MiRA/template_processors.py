@@ -1,9 +1,10 @@
 from api.models import *
-
+from api import internal
 def main(request):
-    project_admin = False
-    if request.user.is_authenticated() and 'projectID' in request.session:
-        if request.user.is_superuser or UserProject.objects.get(user=request.user, project=request.session['projectID']).manager: project_admin = True
-    return {
-       'is_project_admin': project_admin,
-    }
+    tags = dict()
+    tags['is_project_admin'] = False
+    if request.user.is_authenticated():
+        if 'projectID' in request.session and (request.user.is_superuser or UserProject.objects.get(user=request.user, project=request.session['projectID']).manager): 
+            tags['is_project_admin'] = True
+        tags['available_projects'] = internal.ListProjects(request)
+    return tags

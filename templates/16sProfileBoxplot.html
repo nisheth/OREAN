@@ -148,7 +148,7 @@ function countResp(array)
 // [ [labels for each box] [array of values for each box] [array of [x,y] outliers for the plot] ]
 function getdiversity(selectedItem) {
     $("#content").block({message: "<h3><img src='{{STATIC_URL}}img/busy.gif' /> Processing...</h3>"}); 
-    var form = $('form');
+    var form = $('#diversityform');
     $.ajax({
         type: form.attr('method'),
         url: form.attr('action'),
