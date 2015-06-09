@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>MiRA: {%block title%}{%endblock%}</title>
+<title>OREAN: {%block title%}{%endblock%}</title>
 <link rel="stylesheet" href="{{STATIC_URL}}css/nv.d3.css" />
 <link rel="stylesheet" href="{{STATIC_URL}}css/custom.css" />
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
@@ -21,7 +21,7 @@ html, body {
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
 
-<h1>MiRA</h1>
+<h1>OREAN</h1>
   <div style='top:0; right: 0; position: relative;'>
   {%if request.user.is_authenticated and request.user.is_superuser %}
     <a href='{% url "home" %}admin/'><button>Admin</button></a>

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from api.models import *
-from MiRA.views import SCRIPTPATH
-from MiRA.views import myutils 
+from OREAN.views import SCRIPTPATH
+from OREAN.views import myutils 
 import re, sys, time
 
 class bcolors:

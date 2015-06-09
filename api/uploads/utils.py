@@ -1,4 +1,4 @@
-from MiRA.views.myutils import updateSampleCounts
+from OREAN.views.myutils import updateSampleCounts
 from api.models import *
 import re, sys, traceback, time
 import datetime

@@ -9,7 +9,7 @@ from rest_framework import generics
 import datetime
 import time
 import MySQLdb
-from MiRA import settings
+from OREAN import settings
 from django.http import HttpResponse
 import simplejson as json
 from api import internal

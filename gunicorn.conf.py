@@ -1,4 +1,4 @@
-# MiRA Gunicorn configuration file.
+# OREAN Gunicorn configuration file.
 
 #
 # Server socket
@@ -134,7 +134,7 @@ spew = False
 #
 
 daemon = True
-pidfile = "/home/mira/gunicorn_logs/pid.txt"
+pidfile = "/home/orean/gunicorn_logs/pid.txt"
 umask = 0
 user = None
 group = None
@@ -152,9 +152,9 @@ tmp_upload_dir = None
 #       A string of "debug", "info", "warning", "error", "critical"
 #
 
-errorlog = '/home/mira/gunicorn_logs/error.log'
+errorlog = '/home/orean/gunicorn_logs/error.log'
 loglevel = 'info'
-accesslog = '/home/mira/gunicorn_logs/access.log'
+accesslog = '/home/orean/gunicorn_logs/access.log'
 
 #
 # Process naming

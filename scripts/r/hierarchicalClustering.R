@@ -4,15 +4,15 @@ clusterSamples = function (profiledata, metadata, filename) {
 	require('reshape2')
 	require('ggdendro')
 	require('vegan')
-	#save(profiledata, file='/home/mira/profile.rda')
-	#save(metadata, file='/home/mira/metadata.rda')
+	#save(profiledata, file='/home/orean/profile.rda')
+	#save(metadata, file='/home/orean/metadata.rda')
 	mymatrix = dcast(profiledata, samples~entity, value.var='profile', fill=0)
 	row.names(mymatrix) = mymatrix$samples
 	mymatrix$samples = NULL
-	#save(mymatrix, file='/home/mira/profilematrix.rda')
+	#save(mymatrix, file='/home/orean/profilematrix.rda')
 	d = vegdist(mymatrix)
-	#save(d, file='/home/mira/distancematrx.rda')
-	#write.csv(as.matrix(d), file='/home/mira/debugging.txt')
+	#save(d, file='/home/orean/distancematrx.rda')
+	#write.csv(as.matrix(d), file='/home/orean/debugging.txt')
 	hc = hclust(d)
 	# Setup data for colored bars
 	df2<-data.frame(samples=factor(hc$labels,levels=hc$labels[hc$order]))
