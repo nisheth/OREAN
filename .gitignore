@@ -1,1 +1,3 @@
 *.pyc
+OREAN/local_settings.py
+OREAN/settings.py
