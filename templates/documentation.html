@@ -26,14 +26,15 @@
 
 					<dl class="dl-horizontal">
 						<dt>Query</dt>
-						<dd>Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>
-						<dd>Donec id elit non mi porta gravida at eget metus.</dd>
+						<dd>A set of samples from a single project. Queries are computed at the time of request and samples matching the criteria for the query are stored.</dd>
+						<dd>The criteria mandated for a particular query is not stored by the application. Thus is is recommended to adopt meaningful names and to provide detailed descriptions of how each query was prepared.</dd>
 
 						<dt>Attribute Data</dt>
-						<dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+						<dd>Stores in the application any information available for a particular sample. The field can support numeric and non-numeric data as well as dates.</dd>
 
 						<dt>Analysis Data</dt>
-						<dd>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>
+						<dd>Stores results obtained by running various analysis protocols. Can support multiple different analysis techniques for a particular dataset.</dd>
+						<dd>Optional inclusion of NCBI tax IDs for heirarchical data is supported.</dd>
 					</dl>
                                 </div>
                         </div>
@@ -43,21 +44,24 @@
                                         <h3 class="panel-title">Uploads</h3>
                                 </div>
                                 <div class="panel-body">
+
+					<p class='text-justify'>The content below describes the file formats required to add data into the application. Example input data as well as use cases have been provided for a 16S taxonomic classification analysis. However, the format has been designed in a flexible way in an effort to accomodate many different types of multi-omic datasets.</p>
+
 					<blockquote id='uploads-attributedata'><h5>Attribute Data</h5></blockquote>
 
 					<dl class="dl-horizontal">
                                                 <dt>Sample</dt>
-                                                <dd>Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>
-                                                <dd>Donec id elit non mi porta gravida at eget metus.</dd>
+                                                <dd>The name of the sample.</dd>
+                                                <dd>This file uses a "columnar" style. This means that each sample name should appear on multiple lines, one for each field.</dd>
 
                                                 <dt>Category</dt>
-                                                <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+                                                <dd>A classification for the attribute. Can be any string.</dd>
 
                                                 <dt>Field</dt>
-                                                <dd>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>
+                                                <dd>The name of the field. Can be any string</dd>
 
                                                 <dt>Value</dt>
-                                                <dd>Duis sagittis ac ligula vel fringilla.</dd>
+                                                <dd>The value for the field. Values can be numbers, characters, and dates. If a particular field name has different data types for different samples, the field will be considered character data.</dd>
                                         </dl>
 
 					<pre>
@@ -80,38 +84,40 @@ sample2  diagnosis  number_diagnoses  250.6
 					<hr>
 					<blockquote id='uploads-analysisdata'><h5>Analysis Data</h5></blockquote>
 					<dl class="dl-horizontal">
-                                                <dt>Sample</dt>
-                                                <dd>Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>
-                                                <dd>Donec id elit non mi porta gravida at eget metus.</dd>
+                                               <dt>Sample</dt>
+                                                <dd>The name of the sample.</dd>
+                                                <dd>This file uses a "columnar" style. This means that each sample name should appear on multiple lines. In "16S" data the sample appears once for each classification.</dd>
 
                                                 <dt>Dataset</dt>
-                                                <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+                                                <dd>A broad term indicating the type of the data. Can be any string. Something like "16S" would be appropriate.</dd>
 
                                                 <dt>Method</dt>
-                                                <dd>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>
+                                                <dd>The specific technique used for the analysis. This may be the name of a specific software or analysis technique. For "16S" data the method may be the name of the classification software that was used.</dd>
 
                                                 <dt>Category</dt>
-                                                <dd>Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>
-                                                <dd>Donec id elit non mi porta gravida at eget metus.</dd>
+                                                <dd>This field stores the level information in heirarchical datasets. For 16S data this field should represent the taxa level of the classification.</dd>
+                                                <dd>If the data does not have multiple levels the same string may be provided for all rows.</dd>
 
-                                                <dt>Entity</dt>
-                                                <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+                                                <dt>Taxa</dt>
+                                                <dd>This field stores the name of organism into which the sample has been assigned.</dd>
                                                 
                                                 <dt>TaxId</dt>
-                                                <dd>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>
+                                                <dd>The taxonomy ID for the classification, if applicable. If this information does not apply or is not available, this field should be populated with "NA".</dd>
 
-                                                <dt>Raw</dt>
-                                                <dd>Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>
-                                                <dd>Donec id elit non mi porta gravida at eget metus.</dd>
+                                                <dt>Count</dt>
+                                                <dd>This field must be a number. It represents the raw result of the analysis for the particular sample prior to any sort of scaling or normalization.</dd>
+						<dd>For a 16S classification profile, this would represent a count of the number of reads classified to the particular taxonomy</dd>
 
                                                 <dt>Normalized</dt>
-                                                <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+                                                <dd>This is the scaled or normalized result for the sample.</dd>
+						<dd>For a 16S classification profile, this would represent the percentage of reads that classified to the particular taxonomy</dd>
                                                 
-                                                <dt>Confidence</dt>
-                                                <dd>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>
+                                                <dt>Avg_Confidence</dt>
+                                                <dd>If the analysis provides a statistical confidence value for the results that are generated, that value should be placed here.</dd>
+						<dd>This field must be a number. If no confidence score is available then any generic number value should be placed here for all samples.</dd>
                                         </dl>
 					<pre>
-<strong>Sample   Dataset   Method   Category  Entity            TaxId  Raw    Normalized  Confidence</strong>
+<strong>Sample   Dataset   Method   Category  Taxa              TaxId  Count  Normalized  Avg_Confidence</strong>
 sample1  Data-16s  RDP-0-8  rootrank  Root              0      3989   100         1
 sample1  Data-16s  RDP-0-8  domain    Bacteria          1      3989   100         1
 sample1  Data-16s  RDP-0-8  phylum    Actinobacteria    2      221    5.54        1

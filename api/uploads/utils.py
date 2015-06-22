@@ -128,11 +128,30 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
 
     print >> sys.stderr, "starting line validation"
     start = datetime.datetime.now()
+    regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
     for idx, line in enumerate(fh):
         count+=1
 
         line = prepareAnalysisLine(line)
         samples[line[0]] = samples.get(line[0], 0) + 1
+        acceptedSamples = dict()
+
+        # check for previous submission
+        if line[0] not in acceptedSamples:
+            s = line[0]
+            if bool(regex.findall(s)):
+                resp['msg'].append('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
+                return resp
+            if s[0].isdigit() or s[0] == "_":
+                resp['msg'].append('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
+                return resp
+            if s[0] == "." and s[1].isdigit():
+                resp['msg'].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
+                return resp
+            if Analysis.objects.filter(project = project, sample = s, dataset=line[1], method=line[2]).exists():
+                resp['msg'].append('Data exists for sample %s in project %s (%s). Aborting load...' %(s, projectID, project.name) )
+                return resp
+            acceptedSamples[line[0]] = True
 
         # analysis data has 9 columns
         if len(line) != 9: 
@@ -180,20 +199,17 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
 
     print >> sys.stderr, "starting sample validation"
     # Check if entries for these samples already exist
-    regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
-    for s in samples:
-        if bool(regex.findall(s)): 
-            resp['msg'].append('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
-            return resp
-        if s[0].isdigit() or s[0] == "_": 
-            resp['msg'].append('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
-            return resp
-        if s[0] == "." and s[1].isdigit(): 
-            resp['msg'].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
-            return resp
-        if Analysis.objects.filter(project = project, sample = s).exists(): 
-            resp['msg'].append('Data exists for sample %s in project %s (%s). Aborting load...' %(s, projectID, project.name) )
-            return resp
+    #regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
+    #for s in samples:
+    #    if bool(regex.findall(s)): 
+    #        resp['msg'].append('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
+    #        return resp
+    #    if s[0].isdigit() or s[0] == "_": 
+    #        resp['msg'].append('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
+    #        return resp
+    #    if s[0] == "." and s[1].isdigit(): 
+    #        resp['msg'].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
+    #        return resp
 
     # Insert Validated Input into the database for the project
     fh.seek(0)

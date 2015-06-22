@@ -4,7 +4,7 @@ from api.tasks import *
 
 def main(request):
     params = {}
-    uploads = UploadedFile.objects.filter(project__pk = request.session['projectID'])
+    uploads = UploadedFile.objects.filter(project__pk = request.session['projectID']).order_by('-datestamp')
     for upload in uploads:
         if upload.type == 'analysis':
            feedback = analysisFileTask.AsyncResult(upload.task_id)

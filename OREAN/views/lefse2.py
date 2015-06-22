@@ -49,8 +49,10 @@ def main(request):
         for row in dataset:
             #if row.entity in mydata: mydata[row.entity][row.sample] = row.profile/100
             #else: mydata[row.entity] = {row.sample: row.profile/100}
-            if row.taxatree.full_tree in mydata: mydata[row.taxatree.full_tree][row.sample] = row.profile/100
-            else: mydata[row.taxatree.full_tree] = {row.sample: row.profile/100}
+            taxaName = row.entity
+            if row.taxatree is not None: taxaName = row.taxatree.full_tree
+            if taxaName in mydata: mydata[taxaName][row.sample] = row.profile/100
+            else: mydata[taxaName] = {row.sample: row.profile/100}
         inputfile = "/tmp/%d-%d-lefse.txt" %(request.user.pk, int(time.time()))
         formatfile = inputfile+".format"
         resultfile = inputfile+".result"
