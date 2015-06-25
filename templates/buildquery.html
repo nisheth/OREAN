@@ -141,7 +141,7 @@ function updateattr(projectID) {
 
 $(document).ready(function() {
      operators = getops();
-     updateattr($('[name=project]').val());     
+     updateattr({{request.session.projectID}});     
      fetchattrvalues($('.attrtrigger').closest('tbody'));     
      var dataseturl = "{%url 'ListDatasets'%}?projectID={{request.session.projectID}}";
      $.get(dataseturl, function(data) {
