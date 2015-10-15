@@ -94,7 +94,7 @@ def idea(request):
             for i,t in enumerate(toptaxa, start=1):
                 taxadict[t['entity']] = {'loc': i, 'samples': []}
                 resp.append({'name': t['entity'], 'data': []}) 
-            rows = Analysis.objects.filter(project=request.session['projectID'], dataset=datasetname, method=method, category=category, entity__in=taxadict.keys()).order_by('-profile')
+            rows = Analysis.objects.filter(project=request.session['projectID'], dataset=datasetname, method=method, category=category, sample__in=samplelist, entity__in=taxadict.keys()).order_by('-profile')
             sampleloc = dict()
             sampleorder = []
             for row in rows:

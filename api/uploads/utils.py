@@ -148,7 +148,7 @@ def insertAnalysisFromFile(filename, projectID, taxonomy=None):
             if s[0] == "." and s[1].isdigit():
                 resp['msg'].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
                 return resp
-            if Analysis.objects.filter(project = project, sample = s, dataset=line[1], method=line[2]).exists():
+            if Analysis.objects.filter(project = project, sample = s, dataset=line[1], method=line[2], category=line[3], entity=line[4]).exists():
                 resp['msg'].append('Data exists for sample %s in project %s (%s). Aborting load...' %(s, projectID, project.name) )
                 return resp
             acceptedSamples[line[0]] = True
@@ -315,10 +315,10 @@ def insertMetadataFromFile(filename, projectID):
         if len(line) != 4: 
            resp["msg"].append('File "%s" fails validation. Must be 4 columns. Line: %d. Content: %s' % (filename, count, line_str))
            return resp
-        if line[3] not in typecheck: 
-           typecheck[line[2]] = getfieldtype(line[3])
-        elif getfieldtype(line[3]) != typecheck[line[2]]: 
-           resp["msg"].append('File "%s" fails validation. Field "%s" has inconsistent type. Expected a "%s" but found a "%s". Line: %d. Content: %s' % (filename, line[2], typecheck[line[2]], getfieldtype(line[3]), count, line))
+        #if line[3] not in typecheck: 
+        #   typecheck[line[2]] = getfieldtype(line[3])
+        #elif getfieldtype(line[3]) != typecheck[line[2]]: 
+        #   resp["msg"].append('File "%s" fails validation. Field "%s" has inconsistent type. Expected a "%s" but found a "%s". Line: %d. Content: %s' % (filename, line[2], typecheck[line[2]], getfieldtype(line[3]), count, line))
         # Check if entries for these samples already exist and sample formatting
         #samples = list(set(zip(*inputdata)[0]))
         regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
