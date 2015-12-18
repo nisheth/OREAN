@@ -9,7 +9,7 @@
 <form id='uploadForm' action='{%url "uploadMetadata"%}' method='post' enctype='multipart/form-data'>
 {%csrf_token%}
 
-<table class='white table'>
+<table class='white table text-left'>
 {{fileform}}
 </table>
 
@@ -28,7 +28,7 @@
 {%block js%}
 <script src="{{STATIC_URL}}js/uploadProgress.js"></script>
 <script>
-document.getElementById("id_file").style.margin = "0 auto";
+//document.getElementById("id_file").style.margin = "0 auto";
 $('#submit').click(function(){
     var urlstring = "{%url "uploadMetadata"%}";
     var formdata = new FormData($('#uploadForm')[0]);

@@ -12,6 +12,9 @@
 <table class='white table'>
 {{fileform.as_table}}
 {{form.as_table}}
+<tbody id='matrixformgroup' style='display: none'>
+{{matrixform}}
+</tbody>
 </table>
 
 <a href='{%url "uploadStatus" %}'><button type='button' class='btn btn-default'/>View upload history</button> </a>
@@ -31,7 +34,20 @@
 <script>
 //$('#id_taxonomy').closest('tr').hide();
 $('#id_use_taxonomy').click(function() {
-	$('#id_taxonomy').closest('tr').toggle();
+	if(document.getElementById("id_use_taxonomy").checked) {$('#id_taxonomy').closest('tr').show();}
+	else{$('#id_taxonomy').closest('tr').hide();}
+});
+
+$('#id_format').change(function(){
+	if ($('#id_format').val() == "matrix") {
+		$('#matrixformgroup').show();
+		document.getElementById("id_use_taxonomy").checked = false;
+		$("#id_use_taxonomy").closest('tr').hide();
+		$('#id_taxonomy').closest('tr').hide();
+	} else {
+		$('#matrixformgroup').hide();
+		$("#id_use_taxonomy").closest('tr').show();
+	}
 });
 
 $('#submit').click(function(){

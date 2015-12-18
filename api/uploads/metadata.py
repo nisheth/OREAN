@@ -16,7 +16,7 @@ def main(request):
         uploadedfile = fileform.save(commit=False)
         uploadedfile.project = Project.objects.get(pk=request.session['projectID'])
         uploadedfile.save() 
-        task = metadataFileTask.delay(uploadedfile.pk, request.session['projectID'])
+        task = metadataFileTask.delay(uploadedfile.pk, request.session['projectID'], fileform.cleaned_data['format'])
         uploadedfile.task_id = task.id
         uploadedfile.save()
         return HttpResponse(json.dumps({'status': 'ok'}), content_type='application/json')

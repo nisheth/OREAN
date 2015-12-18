@@ -1,5 +1,6 @@
 from OREAN.views.myutils import updateSampleCounts
 from api.models import *
+from biom import load_table
 import re, sys, traceback, time
 import datetime
 
@@ -364,6 +365,7 @@ def insertMetadataFromFile(filename, projectID):
     return resp
 
 def insertMetadataFromTable(filename, projectID):
+    resp = {'ok': False, 'msg': [], 'rows': 0}
 
     # Test File input
     try:
@@ -440,3 +442,133 @@ def insertMetadataFromTable(filename, projectID):
     ok = updateSampleCounts(projectID)
     return resp
 
+def insertAnalysisFromTable(filename,projectID,**kw):
+    resp = {'ok': False, 'msg': [], 'rows': 0}
+
+    # Test for needed arguments
+    try:
+        dataset = kw['dataset']
+        method  = kw['method']
+        category= kw['category']
+    except:
+        resp['msg'].append('Missing arguments. The "dataset", "method", and "category" information is required.')
+        return resp
+
+    # Test File input
+    try:
+        fh = open(filename, 'U')
+    except:
+        resp['msg'].append('Error in accessing file "%s"' % (filename))
+        return resp
+
+    # Test project ID input
+    try:
+        project = Project.objects.get(pk=int(projectID))                                           # attempt to find the project for the given ID
+    except Project.DoesNotExist:
+        resp["msg"].append('Project "%s" does not exist' % projectID)      # report if the project ID does not exist
+        return resp
+
+    header = fh.next().strip().split('\t')
+    ctr = 0
+    regex = re.compile('[^0-9a-zA-Z_.]') # this is a list of the valid characters
+    for row in fh:
+        ctr+=1
+        line = row.strip().split('\t')
+        s = line[0]
+        if len(line) != len(header):
+            resp["msg"].append('Data row "%d" has a length "%d", which does not match the header length "%d"' % ( ctr, len(line), len(header) ))
+        if bool(regex.findall(s)):
+            resp["msg"].append('Sample syntax is invalid at sample "%s", only alpha, numeric, underscore, and dot characters are allowed' %s)
+        if s[0].isdigit() or s[0] == "_":
+            resp["msg"].append('Sample syntax is invalid at sample "%s", the first character must be a letter or a dot' %s)
+        if s[0] == "." and s[1].isdigit():
+            resp["msg"].append('Sample syntax is invalid at sample "%s", the first character is a dot, so the second must be a letter' %s)
+        for i in range(1, len(line)):
+            try:
+                float(line[i])
+            except:
+                resp["msg"].append('File "%s" fails validation. Field "%s" contains non-numeric data. Line: %d. Column %d' % (filename, field, ctr, i+1))
+    if len(resp['msg']) != 0:
+        return resp
+    else:
+        resp['ok'] = True
+        resp['rows'] = ctr
+    fh.seek(0)
+    fh.next()
+    for row in fh:
+      line = row.strip().split('\t')
+      s = line[0]
+      for i in range(1, len(line)):
+          entity = header[i]
+          value = float(line[i])
+          analysis = Analysis(project  = project,
+                              sample   = s,
+                              dataset  = dataset,
+                              method   = method,
+                              category = category,
+                              entity   = entity,
+                              numreads = int(round(value)),
+                              profile  = value,
+                              avgscore = 1.0,
+                             )
+          analysis.save()
+    ok = updateSampleCounts(projectID)
+    return resp
+
+def insertFromBiomFile(filename, projectID):
+    resp = {'ok': False, 'msg': [], 'rows': 0}
+
+    # Test project ID input
+    try:
+        project = Project.objects.get(pk=int(projectID))                                           # attempt to find the project for the given ID
+    except Project.DoesNotExist:
+        resp["msg"].append('Project "%s" does not exist' % projectID)      # report if the project ID does not exist
+        return resp
+
+    # read the file
+    try:
+        table = load_table(filename)
+    except:
+        resp['msg'].append('Unable to parse the biom file.')
+        return resp
+
+    samples = table.ids()
+    sample_totals = table.sum(axis='sample')
+    observations = table.ids(axis='observation') 
+    observation_metadata = table.metadata(axis='observation') 
+
+    #>>> print v2
+    ## Constructed from biom file
+    ##OTU ID	Sample1	Sample2	Sample3	Sample4	Sample5	Sample6
+    #GG_OTU_1	0.0	0.0	1.0	0.0	0.0	0.0
+    #GG_OTU_2	5.0	1.0	0.0	2.0	3.0	1.0
+    #GG_OTU_3	0.0	0.0	1.0	4.0	2.0	0.0
+    #GG_OTU_4	2.0	1.0	1.0	0.0	0.0	1.0
+    #GG_OTU_5	0.0	1.0	1.0	0.0	0.0	0.0
+    #>>> for x in v2: print x
+    #(array([ 0.,  5.,  0.,  2.,  0.]), u'Sample1', None)
+    #(array([ 0.,  1.,  0.,  1.,  1.]), u'Sample2', None)
+    #(array([ 1.,  0.,  1.,  1.,  1.]), u'Sample3', None)
+    #(array([ 0.,  2.,  4.,  0.,  0.]), u'Sample4', None)
+    #(array([ 0.,  3.,  2.,  0.,  0.]), u'Sample5', None)
+    #(array([ 0.,  1.,  0.,  1.,  0.]), u'Sample6', None)
+
+    for n, row in enumerate(table):
+        measurements, sample_name, sample_metadata = row
+
+        if sample_metadata:
+            print "metadata -- "
+            for key, value in sample_metadata.items():
+                print sample_name, key, value
+        print "profile -- "
+        for i, value in enumerate(measurements):
+            if value == 0: continue
+            obs = observations[i]
+            print sample_name, obs, value, 100.0*value/sample_totals[n], observation_metadata[i]
+
+    if len(resp['msg']) != 0:
+        return resp
+    else:
+        resp['ok'] = True
+        resp['rows'] = len(table.ids()) 
+    return resp

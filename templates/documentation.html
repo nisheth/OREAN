@@ -63,8 +63,8 @@
                                                 <dt>Value</dt>
                                                 <dd>The value for the field. Values can be numbers, characters, and dates. If a particular field name has different data types for different samples, the field will be considered character data.</dd>
                                         </dl>
-
-					<pre>
+				<div class='row'>
+				<div class='col-md-6'>	<pre>
 <strong>Sample   Category   Field             Value</strong>
 sample1  metadata   race              African American
 sample1  metadata   gender            Male
@@ -80,7 +80,15 @@ sample2  metadata   time_in_hospital  [3.5-14.0]
 sample2  diagnosis  diag_1            [0.0-1.5)
 sample2  giagnosis  diag_2            428
 sample2  diagnosis  number_diagnoses  250.6
-</pre>
+</pre></div>
+
+                               <div class='col-md-6'>
+					<p>The columnar format allows for customized categorization of metadata field groups, but often this data is stored in a matrix style table. For convenience, both formats are supported. If a matrix style table is provided the application will assign all the variables to the generic category "metadata". In the matrix format, the first column must be the sample name followed by the field values for that sample. A single header line defines the name of each field.</p>
+<pre><strong>sample   race              gender  age      time_in_hospital  diag_1     diag_2  number_diagnoses</strong>
+sample1  African American  Male    [60-70)  [1.5-3.5)         [0.0-1.5)  157     197
+sample2  Caucasian         Female  [40-50)  [3.5-14.0]        [0.0-1.5)  428     250.6
+</pre></div>
+</div>
 					<hr>
 					<blockquote id='uploads-analysisdata'><h5>Analysis Data</h5></blockquote>
 					<dl class="dl-horizontal">
@@ -116,6 +124,8 @@ sample2  diagnosis  number_diagnoses  250.6
                                                 <dd>If the analysis provides a statistical confidence value for the results that are generated, that value should be placed here.</dd>
 						<dd>This field must be a number. If no confidence score is available then any generic number value should be placed here for all samples.</dd>
                                         </dl>
+					<div class='row'>
+					<div class='col-md-6'>
 					<pre>
 <strong>Sample   Dataset   Method   Category  Taxa              TaxId  Count  Normalized  Avg_Confidence</strong>
 sample1  Data-16s  RDP-0-8  rootrank  Root              0      3989   100         1
@@ -136,7 +146,14 @@ sample2  Data-16s  RDP-0-8  order     Actinomycetales   17     3826   29.04     
 sample2  Data-16s  RDP-0-8  suborder  Actinomycineae    18     359    2.73        0.98
 sample2  Data-16s  RDP-0-8  family    Actinomycetaceae  19     359    2.73        0.98
 sample2  Data-16s  RDP-0-8  genus     Actinomyces       21     354    2.69        0.98
-</pre>
+</pre></div>
+						
+					<div class='col-md-6'>
+						<p>Like the metadata, both columnar and matrix style formats are supported for the analysis data. The columnar format allows multiple dataset, method, and categories to be provided in a single file. When uploading a matrix formatted file, this information will be entered into the upload form and is therefore limited to a single value for the entire file. Taxonomy is not supported for matrix files nor is confidence values. The values provided should be the normalized values if a matrix file is provided.</p>
+						<pre><strong>sample   Firmicutes  Actinobacteria  Bacteroidetes  Tenericutes</strong>
+sample1  40.50       15.50           35.20          8.80
+sample2  22.70       10.45           14.7           52.15</pre>
+					</div>
                                 </div>
                         </div>
 

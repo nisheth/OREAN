@@ -5,12 +5,15 @@ from time import sleep
 from api.uploads.utils import *
 
 @shared_task
-def analysisFileTask(fileid, projectID, taxonomy=None):
+def analysisFileTask(fileid, projectID, taxonomy=None, **kw):
     uploadedfile = UploadedFile.objects.get(pk=fileid)
     filename = uploadedfile.file.path
     meta={'type':'Analysis File', 'projectID': projectID, 'filename': filename.split('/')[-1], 'taxonomy':taxonomy}
     current_task.update_state(state='STARTED', meta=meta) 
-    resp = insertAnalysisFromFile(filename,projectID,taxonomy)
+    if kw['format'] == 'columnar':
+        resp = insertAnalysisFromFile(filename,projectID,taxonomy)
+    else:
+        resp = insertAnalysisFromTable(filename,projectID,**kw)
     resp.update(meta)
     return resp
 
@@ -31,11 +34,14 @@ def taxonomyFileTask(fileid, taxonomy):
         return validation
     
 @shared_task
-def metadataFileTask(fileid, projectID):
+def metadataFileTask(fileid, projectID, format):
     uploadedfile = UploadedFile.objects.get(pk=fileid)
     filename = uploadedfile.file.path
     meta={'type':'Metadata File', 'projectID': projectID, 'filename': filename.split('/')[-1]}
     current_task.update_state(state='STARTED', meta=meta)
-    resp = insertMetadataFromFile(filename,projectID)
+    if format == "columnar":
+        resp = insertMetadataFromFile(filename,projectID)
+    else:
+        resp = insertMetadataFromTable(filename,projectID)
     resp.update(meta)
     return resp
