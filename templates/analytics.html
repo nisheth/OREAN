@@ -256,6 +256,8 @@ function makeplot(input, colName) {
       function(e){
         var param = $(this).closest('div').attr('name');
         $(this).closest('div').find('button').show();
+	console.log(param);
+	console.log(e.key);
         dofilter(param, e.key);
         //console.log(e.key);
         //console.log($(this).closest('div').attr('name'));

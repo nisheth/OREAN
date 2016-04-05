@@ -25,5 +25,8 @@ def main(request):
         if not queryname or not projectID or not len(samplelist): return render(request, 'buildquery.html', params)
         print 'Views Description:', description
         finalquery = internal.BuildQueryFromList(request, {'projectID': [projectID], 'queryname': [queryname], 'description': [description], 'sample': samplelist})
+        sqlstring = json.dumps({"list": samplelist})
+        finalquery.sqlstring = sqlstring
+        finalquery.save()
         return redirect('managequeries')
     return render(request, 'samplebasedquery.html', params)

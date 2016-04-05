@@ -112,10 +112,11 @@ function updateops(element) {
     var opelement = $(element).find('select[name=operator]');
     $(opelement).empty();
     var active = $(element).find('select[name=attribute]').find(':selected');
+    console.log(active);
     if ($(active).length == 0) {active = $(element).find('select[name=attribute]')[0];}
     var activetype = attrs[active.attr("rel")]['fieldtype'];
     $.each(operators, function(i, item) {
-         if (jQuery.inArray(activetype, item.types) != -1) {
+         if (item.types.indexOf(activetype) >= 0) {
              $(element).find('select[name=operator]').append("<option value='"+i+"'>"+item.operator+"</option>");
          };
     });
@@ -156,7 +157,7 @@ $('select[name="project"]').change(function() {
      updateattr($('select[name=project]').val());     
 });
 
-$('body').on('click', 'select[name="attribute"]', function() {
+$('body').on('change', 'select[name="attribute"]', function() {
      updateops($(this).closest('tbody'));     
 });
 

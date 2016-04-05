@@ -58,6 +58,6 @@ def main(request):
             if len(datahash[sample]['query']) > 1: finaldata[2]['data'].append(xy)
             elif querynames[0] in datahash[sample]['query']: finaldata[0]['data'].append(xy)
             else: finaldata[1]['data'].append(xy)
-        os.remove(filename)
+        #os.remove(filename)
         return HttpResponse(json.dumps(finaldata), content_type="application/json")
     return render(request, 'pca.html', params)

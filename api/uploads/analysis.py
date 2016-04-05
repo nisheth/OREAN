@@ -24,9 +24,10 @@ def main(request):
         uploadedfile.save() 
         kw = {}
         kw['format'] = fileform.cleaned_data['format']
-        kw['dataset'] = matrixform.cleaned_data['dataset']
-        kw['method'] = matrixform.cleaned_data['method']
-        kw['category'] = matrixform.cleaned_data['category']
+        if matrixform.is_valid():
+          kw['dataset'] = matrixform.cleaned_data['dataset']
+          kw['method'] = matrixform.cleaned_data['method']
+          kw['category'] = matrixform.cleaned_data['category']
         # write file
         #file = '/tmp/%s' % request.FILES['file']
         #with open(file, 'wb+') as destination:

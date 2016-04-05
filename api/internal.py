@@ -50,7 +50,6 @@ def ListQueries(request, params):
                 else: r['number of samples'] = len(r['results'].split(','))
                 r['number of subjects'] = SubjectMap.objects.filter(project=pid).values('subject').distinct().count()
                 r['number of visits'] = SubjectMap.objects.filter(project=pid).values('visit', 'subject').distinct().count()
-                del r['sqlstring']
             return resp
 
 def BuildQuery(request, params):
@@ -149,7 +148,8 @@ def BuildQuery(request, params):
                         results=",".join(queryset)
                        )
         myquery.save()
-        return queryset
+        #return queryset
+        return myquery
 
 def GetData(request, params={}):
         if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
@@ -182,7 +182,7 @@ def GetData(request, params={}):
             tmp = [r]
             for attr in attributelist:
                 try:tmp.append(resp[r][attr])
-                except: tmp.append(None)
+                except: tmp.append("NA")
             array.append(tmp)
         return array
 
@@ -344,7 +344,8 @@ def MergeQuery(request,params={}):
                         results=','.join(mergedlist)
                        )
         myquery.save()
-        return mergedlist
+        #return mergedlist
+        return myquery
 
 def BuildDatasetQuery(request, params={}):
         pid = params.get('projectID', [None])[0]
@@ -374,9 +375,23 @@ def BuildDatasetQuery(request, params={}):
         if Query.objects.filter(project=pid, name=queryname).exists(): raise APIException("Query name '%s' is already in use, please select another name" % queryname)
         n = len(fieldlist)
         if not all(len(x) == n for x in [fieldlist, complist, v1list]): raise APIException('filtering criteria parameters are different lengths')
+        try: project = Project.objects.get(pk=pid)
+        except: raise APIException("Project '%s' could not be found" %pid)
 
-        queryset = Analysis.objects.filter(project = pid)
+        #{"omics": {"attribute": ["dataset", "method", "category", "entity", "profile"], "v1": ["gut", "qiime", "phylum", "p__Bacteroidetes", "5"], "cmp": ["eq", "eq", "eq", "eq", "gt"]}} 
+
+        # setup the base queryset filters
+        baseparams = {'project_id': pid}
+        for i in range(3):
+            attr = fieldlist.pop(0)
+            comp = complist.pop(0)
+            v1 = v1list.pop(0)
+            baseparams[attr] = v1 
+
+        basequeryset = Analysis.objects.filter(**baseparams)
+        sampleset = set(basequeryset.values_list('sample', flat=True).distinct())
         while len(fieldlist):
+            basequeryset = Analysis.objects.filter(**baseparams)
             fieldname = fieldlist.pop(0)
             comp = complist.pop(0)
             v1 = v1list.pop(0)
@@ -385,21 +400,28 @@ def BuildDatasetQuery(request, params={}):
             if parameters['attribute']['choices'][fieldname] != 'STRING':
                 try: v1 = float(v1)
                 except: raise APIException('attribute %s requires numeric values, but v1 is not a numeric')
-            if not pid: raise APIException('projectID is required')
             if parameters['attribute']['choices'][fieldname] not in comparisons[comp]['types']: raise APIException('%s does not support %s comparisons' %(fieldname, comp))
-            try: project = Project.objects.get(pk=pid)
-            except: raise APIException("Project '%s' could not be found" %pid)
 
             params = {}
+            exparams = {}
+            if fieldname == 'entity':
+                params[fieldname] = v1
+                fieldname = fieldlist.pop(0)
+                comp = complist.pop(0)
+                v1 = v1list.pop(0)
             if comp != 'eq' and comp != 'ne':
                 params[fieldname+'__'+comp] = v1
-                queryset = queryset.filter(**params)
+                queryset = basequeryset.filter(**params)
+            elif comp == 'eq':
+                params[fieldname] = v1
+                queryset = basequeryset.filter(**params)
             else:
-                params = {fieldname : v1}
-                if comp=='eq': queryset = queryset.filter(**params)
-                else: queryset = queryset.exclude(**params)
-        queryset = queryset.values_list('sample', flat=True).distinct()
-        sqlstring = "%s" % queryset.query
+                exparams[fieldname] = v1 
+                queryset = basequeryset.filter(**params).exclude(**exparams)
+
+            cur_samples = set(queryset.values_list('sample', flat=True).distinct())
+            sampleset = sampleset.intersection(cur_samples)
+        sqlstring = None
 
         # Store this new query in the query table
         myquery = Query(
@@ -408,10 +430,11 @@ def BuildDatasetQuery(request, params={}):
                         name=queryname,
                         description=querydesc,
                         sqlstring=sqlstring,
-                        results=",".join(queryset)
+                        results=",".join(sampleset)
                        )
         myquery.save()
-        return queryset
+        #return queryset
+        return myquery
 
 def DeleteQuery(request, params={}):
         if not request.user.is_authenticated(): raise NotAuthenticated('please provide key or login to fetch data')
@@ -499,4 +522,5 @@ def BuildQueryFromList(request, params={}):
                         results = ",".join(samples)
                        )
         myquery.save()
-        return samples
+        #return samples
+        return myquery

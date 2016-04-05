@@ -8,17 +8,17 @@
 
 
 {%block content%}
-<form class="form-horizontal" role="form" action="{%url 'samplebasedquery'%}" method='post'>{%csrf_token%}
+<form class="form-horizontal" role="form" action="{%url 'mergequery'%}" method='post'>{%csrf_token%}
 <div style='width: 100%'>
   <input type='hidden' name='project' value='{{request.session.projectID}}'>
   <div id='querylist' style='width:800px; margin: 0 auto;'>
    
     <p class='text-center'> 
     <label class="radio-inline">
-      <input type="radio" name="mergetype" id="mergetype1" class='queryselection' value="inclusive" checked> Include samples from any selection
+      <input type="radio" name="mergetype" id="mergetype1" class='queryselection' value="union" checked> Include samples from any selection
     </label>
     <label class="radio-inline">
-      <input type="radio" name="mergetype" id="mergetype2" class='queryselection' value="exclusive"> Include only samples in all selections
+      <input type="radio" name="mergetype" id="mergetype2" class='queryselection' value="intersection"> Include only samples in all selections
     </label>
     </p>
     <div class='alert alert-info text-center' role='alert'>Samples in current selection <u><b><em id='samplecount'>N</em></b></u></div>
@@ -59,7 +59,7 @@ $(document).ready(function() {
       		element = document.getElementById("querylist");
 		html = "<ul class='list-group'>";
 		for (i in data) {
-			html+="<li class='list-group-item black'><label class='checkbox-inline'><input type='checkbox' class='queryselection inputbox' value='"+data[i].name+"'> "+data[i].name+"</label><a href='#' class='badge'><em>"+data[i]["number of samples"]+"</em> samples<span class='dropdown carettoggle'><span class='caret'></span></a></li>";
+			html+="<li class='list-group-item black'><label class='checkbox-inline'><input type='checkbox' name='queries' class='queryselection inputbox' value='"+data[i].name+"'> "+data[i].name+"</label><a href='#' class='badge'><em>"+data[i]["number of samples"]+"</em> samples<span class='dropdown carettoggle'><span class='caret'></span></a></li>";
 			html+="<li style='display:none' class='list-group-item list-group-item-info black'><b>Description:</b> "+data[i].description+"</li>";
 			if (data[i]["number of samples"] != 0) {samplesarray[data[i].name] = data[i].results.split(",");}
 			else {samplesarray[data[i].name] = [];}
@@ -81,7 +81,7 @@ $(document.body).on('click', '.queryselection', function(){
 	$(selected).each(function (index, element) {
 		tmp = samplesarray[$(element).val()].slice(0);
 		mt = $('[name=mergetype]:checked').val();
-		if ((mt == 'inclusive') || (selected.length == 1) || (first)) {
+		if ((mt == 'union') || (selected.length == 1) || (first)) {
 			first = false;
 			for ( i in tmp) {
 				myindex = $.inArray(tmp[i], kept);

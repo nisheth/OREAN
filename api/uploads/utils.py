@@ -1,6 +1,7 @@
 from OREAN.views.myutils import updateSampleCounts
 from api.models import *
 from biom import load_table
+from collections import defaultdict
 import re, sys, traceback, time
 import datetime
 
@@ -515,8 +516,30 @@ def insertAnalysisFromTable(filename,projectID,**kw):
     ok = updateSampleCounts(projectID)
     return resp
 
-def insertFromBiomFile(filename, projectID):
+def insertFromBiomFile(filename, projectID, **kw):
     resp = {'ok': False, 'msg': [], 'rows': 0}
+
+    # Test for needed arguments
+    try:
+        dataset = kw['dataset']
+        method  = kw['method']
+        category= kw['category']
+    except:
+        resp['msg'].append('Missing arguments. The "dataset", "method", and "category" information is required.')
+        return resp
+
+    # taxa mapping
+    taxa_names = {'k': 'kingdom',
+                  'p': 'phylum',
+                  'c': 'class',
+                  'o': 'order',
+                  'f': 'family',
+                  'g': 'genus',
+                  's': 'species'}
+
+    # regexes for taxonomy information ( if applicable )
+    un_taxa = re.compile(r'^\w__$')
+    ok_taxa = re.compile(r'^\w__') 
 
     # Test project ID input
     try:
@@ -537,35 +560,64 @@ def insertFromBiomFile(filename, projectID):
     observations = table.ids(axis='observation') 
     observation_metadata = table.metadata(axis='observation') 
 
-    #>>> print v2
-    ## Constructed from biom file
-    ##OTU ID	Sample1	Sample2	Sample3	Sample4	Sample5	Sample6
-    #GG_OTU_1	0.0	0.0	1.0	0.0	0.0	0.0
-    #GG_OTU_2	5.0	1.0	0.0	2.0	3.0	1.0
-    #GG_OTU_3	0.0	0.0	1.0	4.0	2.0	0.0
-    #GG_OTU_4	2.0	1.0	1.0	0.0	0.0	1.0
-    #GG_OTU_5	0.0	1.0	1.0	0.0	0.0	0.0
-    #>>> for x in v2: print x
-    #(array([ 0.,  5.,  0.,  2.,  0.]), u'Sample1', None)
-    #(array([ 0.,  1.,  0.,  1.,  1.]), u'Sample2', None)
-    #(array([ 1.,  0.,  1.,  1.,  1.]), u'Sample3', None)
-    #(array([ 0.,  2.,  4.,  0.,  0.]), u'Sample4', None)
-    #(array([ 0.,  3.,  2.,  0.,  0.]), u'Sample5', None)
-    #(array([ 0.,  1.,  0.,  1.,  0.]), u'Sample6', None)
-
     for n, row in enumerate(table):
+        valid_taxa = True
         measurements, sample_name, sample_metadata = row
 
+        if Analysis.objects.filter(project = project, sample = sample_name, dataset = dataset, method = method, category = category).exists(): 
+            continue
+
+        abundance = defaultdict(int)
+
         if sample_metadata:
-            print "metadata -- "
+            #print "metadata -- "
             for key, value in sample_metadata.items():
-                print sample_name, key, value
-        print "profile -- "
+                #print sample_name, key, value
+                attributes, created = Attributes.objects.get_or_create(project  = project,
+                                        sample   = sample_name,
+                                        category = 'metadata',
+                                        field    = key,
+                                        defaults={'value': value},
+                                       )
+                attributes.value = value
+                newinfo, created = AttributeInfo.objects.get_or_create(project   = project,
+                                        name      = key,
+                                        fieldtype = getfieldtype(value),
+                                        values    = "",
+                                       )
+                newinfo.save()
+                attributes.save()
+        #print "profile -- "
         for i, value in enumerate(measurements):
             if value == 0: continue
             obs = observations[i]
-            print sample_name, obs, value, 100.0*value/sample_totals[n], observation_metadata[i]
-
+            try:
+                obs_md = observation_metadata[i]
+            except:
+                obs_md = {}
+            if 'taxonomy' in obs_md and valid_taxa:
+                for t in obs_md['taxonomy']:
+                    if not ok_taxa.match(t):
+                        valid_taxa = False
+                        print obs_md['taxonomy'], t
+                        abundance = defaultdict(int)
+                        break
+                    if un_taxa.match(t):
+                        t += 'unclassified'
+                    abundance[t] += value
+            else:
+                valid_taxa = False
+            #print sample_name, dataset, method, category, obs, value, 100.0*value/sample_totals[n], obs_md
+            new_obj, created = Analysis.objects.get_or_create(project = project, sample = sample_name, dataset = dataset, method = method, 
+                                                     category = category, entity = obs, taxatree = None, numreads = value, 
+                                                     profile = 100.0*value/sample_totals[n], avgscore = 1.0)
+        if valid_taxa and abundance:
+            #print "taxonomy -- "
+            for taxa in sorted(abundance):
+                #print sample_name, dataset, method, taxa_names[taxa[0]], taxa, abundance[taxa], 100.0*abundance[taxa]/sample_totals[n]
+                new_obj, created = Analysis.objects.get_or_create(project = project, sample = sample_name, dataset = dataset, method = method,
+                                                                  category = taxa_names[taxa[0]], entity = taxa, taxatree = None, numreads = abundance[taxa],
+                                                                  profile = 100.0*abundance[taxa]/sample_totals[n], avgscore = 1.0)
     if len(resp['msg']) != 0:
         return resp
     else:

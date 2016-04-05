@@ -52,6 +52,7 @@ urlpatterns = patterns('',
     url(r'requestPasswordReset', 'OREAN.views.resetPassword.requestReset', name='requestReset'),
     url(r'resetPassword/(?P<token>\w{32})/$', 'OREAN.views.resetPassword.main', name='resetPassword'),
     url(r'timecourse/table', 'OREAN.views.timecourse.viewTimecourseInTable', name='timecourseTable'),
+    url(r'^query/rebuild$', 'OREAN.views.buildquery.rebuild', name='rebuildquery'),
 
     # sample report urls
     url(r'sample/report', 'OREAN.views.samplereport.main', name='samplereport'),
@@ -65,6 +66,7 @@ urlpatterns = patterns('',
     url(r'upload/status', 'api.uploads.status.main', name='uploadStatus'),
 
     # documentation
+    url(r'^team$', TemplateView.as_view(template_name='team.html'), name='team'),
     url(r'^documentation$', TemplateView.as_view(template_name='documentation.html'), name='documentation'),
 
 )

@@ -16,7 +16,8 @@ class UploadFileForm(forms.ModelForm):
 
     FORMAT_CHOICES = (
      ('columnar', 'columnar'),
-     ('matrix', 'matrix')
+     ('matrix', 'matrix'),
+     ('biom', 'biom')
     )
 
     format = forms.ChoiceField(choices = FORMAT_CHOICES, label="Format", initial='columnar', widget=forms.Select(), required=True)

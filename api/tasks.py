@@ -12,6 +12,8 @@ def analysisFileTask(fileid, projectID, taxonomy=None, **kw):
     current_task.update_state(state='STARTED', meta=meta) 
     if kw['format'] == 'columnar':
         resp = insertAnalysisFromFile(filename,projectID,taxonomy)
+    elif kw['format'] == 'biom':
+        resp = insertFromBiomFile(filename,projectID,**kw)
     else:
         resp = insertAnalysisFromTable(filename,projectID,**kw)
     resp.update(meta)
@@ -45,3 +47,4 @@ def metadataFileTask(fileid, projectID, format):
         resp = insertMetadataFromTable(filename,projectID)
     resp.update(meta)
     return resp
+

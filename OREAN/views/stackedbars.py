@@ -65,6 +65,8 @@ def main(request):
         return HttpResponse(json.dumps(furl), content_type="application/json")
     return render(request, 'stackedbars.html', params)
 
+@login_required
+@activeproject
 def idea(request):
     from api.models import *
     from django.db.models import Max

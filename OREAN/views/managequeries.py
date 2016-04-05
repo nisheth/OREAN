@@ -25,6 +25,7 @@ def main(request):
          tmp['user'] = User.objects.get(pk=q['user_id']).username
          tmp['project'] = q['project_id']
          tmp['description'] = q['description']
+         tmp['sqlstring'] = q['sqlstring']
          if request.user.username == tmp['user']: params['queries'].append(tmp)
          else: params['pubqueries'].append(tmp)
     return render(request, 'managequeries.html', params)

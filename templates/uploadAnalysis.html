@@ -39,7 +39,7 @@ $('#id_use_taxonomy').click(function() {
 });
 
 $('#id_format').change(function(){
-	if ($('#id_format').val() == "matrix") {
+	if ($('#id_format').val() != "columnar") {
 		$('#matrixformgroup').show();
 		document.getElementById("id_use_taxonomy").checked = false;
 		$("#id_use_taxonomy").closest('tr').hide();
