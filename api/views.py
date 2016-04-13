@@ -14,6 +14,7 @@ from django.http import HttpResponse
 import simplejson as json
 from api import internal
 from api import *
+from api.serializers import *
 
 # API Root
 # Lists the available APIs for use
@@ -135,12 +136,13 @@ class BuildQuery(generics.ListCreateAPIView):
         if len(request.GET) == 0: return Response(helpmessage)
 
         kwargs = dict(request.QUERY_PARAMS)
-        return Response(internal.BuildQuery(request, kwargs))
+        serializer = QuerySerializer(internal.BuildQuery(request, kwargs))
+        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
         kwargs = dict(request.POST)
-        results = internal.BuildQueryFromList(request, kwargs)
-        return Response(results)
+        results = QuerySerializer(internal.BuildQueryFromList(request, kwargs))
+        return Response(results.data)
 
         #pid = request.POST.get('projectID', None)
         #queryname = request.POST.get('queryname', None)
