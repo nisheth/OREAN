@@ -38,7 +38,7 @@ def send_new_email(request, to_address, subject, message):
   try: 
      send_mail(subject,
                message,
-               'OREAN Web Server <orean@vcu.edu>',
+               'OREAN Web Server <noreply@orean.org>',
                [to_address],
                fail_silently=False)
   except:

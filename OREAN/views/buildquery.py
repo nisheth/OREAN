@@ -45,12 +45,20 @@ def main(request):
                         'queryname': [this_query]} 
                 buildresult =  internal.BuildQuery(request, args)   
                 tmp_queries.append(this_query)
-            finalquery = internal.MergeQuery(request, {'projectID': [projectID], 'queryname': tmp_queries, 'type':['intersection'], 'mergename': [queryname], 'description': [querydesc]})
-            for tmp in tmp_queries:
-                status =  internal.DeleteQuery(request, {'queryname':[tmp.name], 'projectID':[projectID]})
+            try:
+                finalquery = internal.MergeQuery(request, {'projectID': [projectID], 'queryname': tmp_queries, 'type':['intersection'], 'mergename': [queryname], 'description': [querydesc]})
+                for tmp in tmp_queries:
+                    status =  internal.DeleteQuery(request, {'queryname':[tmp.name], 'projectID':[projectID]})
+            except Exception, e:
+                messages.add_message(request, messages.ERROR, e)
+                return render(request, 'buildquery.html', params)
         else: 
-            finalquery = internal.BuildQuery(request, {'projectID': [projectID], 'attribute': [attributes[0]], 'cmp': [operators[0]], 'v1': [values[0]], 'queryname': [queryname], 'description': [querydesc]})
-            params_to_save.append([attributes[0], operators[0], values[0]])
+            try:
+                finalquery = internal.BuildQuery(request, {'projectID': [projectID], 'attribute': [attributes[0]], 'cmp': [operators[0]], 'v1': [values[0]], 'queryname': [queryname], 'description': [querydesc]})
+                params_to_save.append([attributes[0], operators[0], values[0]])
+            except Exception, e:
+                messages.add_message(request, messages.ERROR, e)
+                return render(request, 'buildquery.html', params)
         voodoo_magic = {'metadata': params_to_save}
         finalquery.sqlstring = json.dumps(voodoo_magic)
         finalquery.save()
