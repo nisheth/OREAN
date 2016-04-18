@@ -25,7 +25,7 @@ writeLines("-----")
 
 # write variance composition
 mysummary <- summary(mypca)
-write.csv(t(mysummary$importance)[1:N,], quote=FALSE)
+write.csv(format(t(mysummary$importance)[1:N,], digits=1), quote=FALSE)
 
 # data separator
 writeLines("-----")
@@ -33,4 +33,4 @@ writeLines("-----")
 # write the first N prinicpal components and the contribution
 # to those N components by the N most impactful taxa
 #write.csv(mypca$rotation[order(sapply(abs(mypca$rotation[,1]), sum), decreasing=T)[1:N],1:N], quote=F)
-write.csv(mypca$rotation[order(rowSums(abs(mypca$rotation[,1:N])), decreasing=T)[1:N],1:N], quote=F)
+write.csv(format(mypca$rotation[order(rowSums(abs(mypca$rotation[,1:N])), decreasing=T)[1:N],1:N], digits=1), quote=F)
