@@ -50,7 +50,10 @@ def main(request):
         pca.pop(0) 
         pca.pop() 
         finaldata = [{'name' : querynames[0], 'color': '#ff0000', 'data': []}, {'name': querynames[1], 'color': '#0000ff', 'data': []}, {'name': 'Both', 'color': '#00ff00', 'data' : []}]
-        for row in pca:
+        i = 0
+        for i in range(len(pca)):
+            row = pca[i]
+            if row.startswith('-----'): break
             cols = row.split(',')
             sample = cols[0]
             if sample[0] == 'X' and sample not in datahash: sample = sample[1:]
@@ -58,6 +61,23 @@ def main(request):
             if len(datahash[sample]['query']) > 1: finaldata[2]['data'].append(xy)
             elif querynames[0] in datahash[sample]['query']: finaldata[0]['data'].append(xy)
             else: finaldata[1]['data'].append(xy)
+        i+=1
+        cutoff = i
+        variances = []
+        for i in range(cutoff, len(pca)):
+            row = pca[i]
+            if row.startswith('-----'): break
+            cols = row.split(',')	
+            variances.append(cols)
+        i+=1
+        cutoff = i
+        finaldata.append(variances)
+        keytaxa = []
+        for i in range(cutoff, len(pca)):
+            row = pca[i]
+            cols = row.split(',')       
+            keytaxa.append(cols)
+        finaldata.append(keytaxa)
         #os.remove(filename)
         return HttpResponse(json.dumps(finaldata), content_type="application/json")
     return render(request, 'pca.html', params)

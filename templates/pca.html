@@ -48,12 +48,32 @@
 
 {%block content%}
 <div id='chart' style='clear: both; margin:auto; height: 75%;'></div>
+<div class='row'>
+	<div class='col-md-3' id='variancediv'></div> 
+	<div class='col-md-9' id='keytaxadiv'></div> 
+</div>
 {%endblock%}
 {%block js%}
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/highcharts-more.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script>
+
+function insertNewTable(tableData) {
+        var myhtml = "<table class='table white'>";
+        for (i=0; i<tableData.length; i++) {
+		row = tableData[i];
+		myhtml += '<tr>';
+		var delim = 'td';
+		if (i == 0) { delim = 'th';}
+		for (j = 0; j < row.length; j++) {
+			myhtml += '<'+delim+'>'+row[j]+'</'+delim+'>'; 
+		}  
+		myhtml += '</tr>';
+	}
+        myhtml += "</table>";
+        return myhtml;
+}
 
 Highcharts.setOptions({
      colors: [
@@ -74,6 +94,8 @@ Highcharts.setOptions({
 });
 
 function loadchart(data) {
+	var keyTaxa = data.pop();
+	var pcVariance = data.pop();
     $('#chart').highcharts({
         chart: {
             type: 'scatter',
@@ -126,6 +148,9 @@ function loadchart(data) {
         },
         series: data
 	});
+	$("#variancediv").html(insertNewTable(pcVariance));
+	$("#keytaxadiv").html(insertNewTable(keyTaxa));
+
 }
 
 function getdiversity(selectedItem) {
