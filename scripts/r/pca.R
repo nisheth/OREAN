@@ -1,6 +1,9 @@
 # number of components to return
 N = 5
 
+# turn off sci notation
+options(scipen = 999)
+
 args <- commandArgs(TRUE)
 filename <- args[1]
 
@@ -32,5 +35,4 @@ writeLines("-----")
 
 # write the first N prinicpal components and the contribution
 # to those N components by the N most impactful taxa
-#write.csv(mypca$rotation[order(sapply(abs(mypca$rotation[,1]), sum), decreasing=T)[1:N],1:N], quote=F)
-write.csv(format(mypca$rotation[order(rowSums(abs(mypca$rotation[,1:N])), decreasing=T)[1:N],1:N], digits=1), quote=F)
+write.csv(format(mypca$rotation[order(rowSums(abs(mypca$rotation[,1:N])), decreasing=T)[1:N],1:N], digits=2), quote=F)

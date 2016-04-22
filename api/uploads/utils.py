@@ -535,7 +535,8 @@ def insertFromBiomFile(filename, projectID, **kw):
                   'o': 'order',
                   'f': 'family',
                   'g': 'genus',
-                  's': 'species'}
+                  's': 'species',
+                  'u': 'unclassified'}
 
     # regexes for taxonomy information ( if applicable )
     un_taxa = re.compile(r'^\w__$')
@@ -597,13 +598,16 @@ def insertFromBiomFile(filename, projectID, **kw):
                 obs_md = {}
             if 'taxonomy' in obs_md and valid_taxa:
                 for t in obs_md['taxonomy']:
-                    if not ok_taxa.match(t):
-                        valid_taxa = False
-                        print obs_md['taxonomy'], t
-                        abundance = defaultdict(int)
-                        break
-                    if un_taxa.match(t):
-                        t += 'unclassified'
+                    if t.lower() != 'unclassified':
+                        if not ok_taxa.match(t):
+                            valid_taxa = False
+                            print i, obs_md['taxonomy'], t
+                            abundance = defaultdict(int)
+                            break
+                        if un_taxa.match(t):
+                            t += 'unclassified'
+                    else:
+                        t = t.lower()
                     abundance[t] += value
             else:
                 valid_taxa = False
