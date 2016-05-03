@@ -1,0 +1,32 @@
+.flex-parent {
+	display: flex;
+	flex-direction: column;
+
+	justify-content: flex-start;
+	align-items: center;
+	align-content: center;
+	min-height: 100%;
+	height:auto;
+    	width:100%;
+	padding: 25 15 0 15;
+}
+
+.flex-bin {
+	display: flex;
+	flex-direction: column;
+        justify-content: space-around;
+	align-items: center;
+        align-content: center;
+	height: auto;
+	max-width: 900px;
+}
+
+.flex-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: baseline;
+        align-content: center;
+        height: auto;
+        width: 100%;
+}

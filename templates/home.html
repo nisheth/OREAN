@@ -2,18 +2,82 @@
 
 {%block title%}Home{%endblock%}
 
-{%block video%}
-	    <iframe width="853" height="480" align='center' src="https://www.youtube.com/embed/PS9YOSjYePo" frameborder="0" allowfullscreen></iframe>
+{%block header%}
+<link rel="stylesheet" href="{{STATIC_URL}}css/flexcontent.css" />
 {%endblock%}
 
-{%block content%}
-            <p class="lead">OREAN stands for <b><u>O</u></b>mics <b><u>RE</u></b>search <b><u>AN</u></b>alytics and serves as a resource for analysis, visualization, and sharing of multi-omic microbiome datasets.</p>
-            <p class="lead">
-              {%if user.is_authenticated%}
-              <a href="{%url 'logout'%}" class="btn btn-lg btn-default">Sign out <span class="glyphicon glyphicon-log-out"></span></a>
-              {%else%}
-              <a href="{%url 'login'%}" class="btn btn-lg btn-default">Sign in <span class="glyphicon glyphicon-log-in"></span></a>
-              <a href="{%url 'registerNewUser'%}" class="btn btn-lg btn-default">Sign up <span class="glyphicon glyphicon-pencil"></span></a>
-              {%endif%}
-            </p>
+{%block main%}
+	<div class='flex-parent white'>
+	<div class='flex-bin'>
+	    <div>
+            	<p class="lead text-justify">OREAN, <b><u>O</u></b>mics <b><u>RE</u></b>search <b><u>AN</u></b>alytics, is an interactive web-based multi-omics data analysis, exploration, visualization and collaboration system. OREAN supports various interactive and dynamic data-exploratory visualizations and metadata-driven case-control comparative statistical analyses such as alpha/beta diversity, PCA, lefse, heatmap, hierarchical clustering etc. OREAN provides an intuitive way to share and collaborate on datasets by multi-skillset domain experts and data scientists. </p> 
+
+	    	<div class='row visible-xs'>
+        	    <div class='col-sm-6'>
+			<strong>Features:</strong>
+			<ul class="fa-ul">
+				<li> Cohort Discovery and Exploration </li>
+				<li> Visualization </li>
+				<li> Statistical Analysis </li>
+				<li> Data Collaboration </li>
+			</ul>
+		    </div>
+
+            	    <div class='col-sm-6'>
+                	<strong>Technology:</strong>
+                	<ul>
+                		<li> Python </li>
+               			<li> Django </li>
+               			<li> Celery </li>
+               			<li> MySQL </li>
+               			<li> R </li>
+               			<li> HighCharts </li>
+               			<li> D3.js </li>
+               		</ul>
+            	    </div>
+            	</div>
+
+              <div class='flex-row hidden-xs'>
+                    <div>
+                        <strong>Features:</strong>
+                        <ul class="fa-ul">
+                                <li> Cohort Discovery and Exploration </li>
+                                <li> Visualization </li>
+                                <li> Statistical Analysis </li>
+                                <li> Data Collaboration </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <strong>Technology:</strong>
+                        <ul>
+                                <li> Python </li>
+                                <li> Django </li>
+                                <li> Celery </li>
+                                <li> MySQL </li>
+                                <li> R </li>
+                                <li> HighCharts </li>
+                                <li> D3.js </li>
+                        </ul>
+                    </div>
+                </div>
+
+            	<p class="lead text-center">
+              		{%if user.is_authenticated%}
+              		<a href="{%url 'logout'%}" class="btn btn-lg btn-default">Sign out <span class="glyphicon glyphicon-log-out"></span></a>
+              		{%else%}
+              		<a href="{%url 'login'%}" class="btn btn-lg btn-default">Sign in <span class="glyphicon glyphicon-log-in"></span></a>
+              		<a href="{%url 'registerNewUser'%}" class="btn btn-lg btn-default">Sign up <span class="glyphicon glyphicon-pencil"></span></a>
+              		{%endif%}
+            	</p>
+	    
+	    </div>
+	   <!-- <iframe width="853" height="480" align='center' src="https://www.youtube.com/embed/PS9YOSjYePo" frameborder="0" allowfullscreen></iframe>-->
+	    <section class="row" style='width: 100%'>
+  <div class="col-lg-12" style='padding: 0'>
+    <div class="flex-video widescreen"><iframe src="https://www.youtube.com/embed/PS9YOSjYePo" frameborder="0" allowfullscreen="" style='width: 100%' height='400'></iframe></div>
+  </div>
+</section>
+	</div>
+	</div>
 {%endblock%}

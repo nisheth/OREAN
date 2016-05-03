@@ -1,13 +1,28 @@
 <html>
 <head>
+<meta name="viewport" content="initial-scale=1">
 <title>OREAN: {%block title%}{%endblock%}</title>
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/nv.d3.css" />
 <link rel="stylesheet" href="{{STATIC_URL}}css/custom.css" />
-<link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
+<!--<link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-theme.min.css">
+-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/css/select2.min.css" />
 <style>
+#projectbin{
+	display: flex;
+	flex-direction: row;
+	background: #3D3D3D;
+	width: 100%;
+	justify-content: space-between;
+	align-content: center;
+	align-items: center;
+	height: auto;
+	padding:5 15 5 15;
+}
 
 .projectFeature {
 padding-left:10px; 
@@ -50,8 +65,9 @@ border-radius: 25px 25px 25px 25px;
 </head>
 
 <body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+<div class="navbar navbar-inverse" role="navigation">
   <div class="container-fluid text-center">
+  <!--<div class='container-header'>-->
     <a class="navbar-brand" href="{%url 'home'%}">OREAN</a>
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -131,32 +147,40 @@ border-radius: 25px 25px 25px 25px;
           </ul>
         </li>
       </ul>
-      {%if user.is_superuser%}
-      <a class="navbar-text navbar-right" href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench white"></span></a>
-      {%endif%}
-      {% if user.is_authenticated and request.session.projectName%}
-      <div class='navbar-text navbar-right projectFeature'><!-- style='padding-left:10px; padding-right: 10px;border-radius: 25px 25px 25px 25px; text-align: center; background: #FFF; color: #000;'>-->
-        <a class='black' href='#' id='projectPopover' data-placement="bottom">Project: {{request.session.projectName}} <span class="glyphicon glyphicon-chevron-down"></span></a>
-        <div id="projectPopoverContent" style="display: none">
-                {%for project in available_projects%}
-                <p><form class='projectSelectItem' action="{%url 'chooseproject'%}" method="POST">{%csrf_token%}<input type='hidden' name='goto' value="{{request.get_full_path|urlencode}}"/><input type='hidden' name='project' value="{{project.pk}}"/><button class='btn btn-link'>{{project.name}}</button></form></p>
-                {%endfor%}
-        </div>
-      </div>
-      {%endif%}
     </div><!--/.nav-collapse -->
+  <!--</div>-->
   </div>
 </div>
 
+      {% if user.is_authenticated and request.session.projectName%}
+<div class='row-fluid'>
+  <div id='projectbin'>
+      <div class='projectFeature'>
+        <a class='black' href='#' id='projectPopover' data-placement="bottom">Project: {{request.session.projectName}} <span class="glyphicon glyphicon-chevron-down"></span></a>
+        <div id="projectPopoverContent" style="display: none">
+                {%for project in available_projects%}
+                <p><form class='projectSelectItem' action="{%url 'chooseproject'%}" method="POST">{%csrf_token%}<input type='hidden' name='goto' value="{{request.get_full_path|urlencode}}"/><input type='hidden' name='project' value="{{project.pk}}"/><button class='btn btn-link black'>{{project.name}}</button></form></p>
+                {%endfor%}
+        </div>
+      </div>
+      {%if user.is_superuser%}
+      <a style='align-self: auto' href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench white"></span></a>
+      {%endif%}
+  </div>
+</div>
+
+      {%endif%}
+
 <nav class="navbar navbar-inverse navbar-fixed-bottom" style='height: 25px; min-height: 25px;'>
   <div class="navbar-header white" style='width: 100%'>
-    <p class='text-center' style='margin-top: 5px; margin-bottom: 5px'>OREAN 2015</p>
+    <p class='text-center' style='margin-top: 5px; margin-bottom: 5px'>OREAN 2016</p>
   </div>
 </nav>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
-<script src="{{STATIC_URL}}js/bootstrap.min.js"></script>
+<!--<script src="{{STATIC_URL}}js/bootstrap.min.js"></script>-->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script src="https://d3js.org/d3.v3.js"></script>
 <script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
 <script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
@@ -174,7 +198,7 @@ $(function(){
         content: function() {
           return $('#projectPopoverContent').html();
         },
-        title: '<b>Available Projects</b>'
+	placement: 'auto',
     });
 
 });

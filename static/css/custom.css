@@ -6,7 +6,7 @@ html, body {
         background-color: lightgrey;
   background-image: url(../img/brushed_alu_dark/brushed_alu_dark.png);
   background-repeat: repeat;
-  padding-top: 25px;
+  /*padding-top: 25px;*/
   padding-bottom: 25px; 
   min-height: 100% !important;
 }
@@ -72,8 +72,23 @@ input, textarea, .black {
   color: white !important;
 }
 
+.container-header {
+  width: 853px;
+  margin: auto;
+}
+
+/*.projectFeature {
+  position: absolute;
+  right: 20px;
+}
+*/
+.popover {
+  max-height: 500px;
+  overflow: auto;
+}
+
+
 /* D3 Styles */
-<style>
 .svg text {
         fill: white;
         text-anchor: middle;
@@ -108,4 +123,28 @@ input, textarea, .black {
   left: 0;
 }
 
-</style>
+@media (min-width: 768px) {
+	.navbar-collapse.collapse {
+	        text-align: center; 
+	        display: block !important;
+	        height: auto !important;
+	        padding-bottom: 0;
+	        overflow: visible !important;
+	}
+	.navbar-nav {
+	    display: inline-block;
+	    float: none !important;
+	    margin: 0;
+	    padding-right: 90px;
+	}
+}
+.navbar {
+	margin-bottom: 0px !important;
+	width: auto;
+}
+
+@media (max-width: 767px) {
+	.navbar-brand {
+		padding-left: 0px !important;
+	}
+}
