@@ -155,7 +155,8 @@ function getdiversity(selectedItem) {
         data: form.serialize()+"&format=json&"+selectedItem,
         dataType: 'json',
         success: function (data) {
-            N = countResp(data[0]);
+            //N = countResp(data[0]);
+            N = data[data.length - 1];
             loadchart(data, N); 
             for (var i = 0; i < samplelist.length; i++) { // loop through any existing samples so sample data stays on chart after re-rendering
                 fetchsample(samplelist[i]); 

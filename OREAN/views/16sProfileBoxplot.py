@@ -32,8 +32,8 @@ def main(request):
     if querynames:
         if not querynames or not inputdataset or not method or not category: return render(request, 'alpha.html', params)
         #entities = []
-        entities = myutils.topTaxa(querynames, inputdataset, method, category, CUTOFF)
-        elementOfGlory = {}
+        entities = myutils.topTaxa(request.session['projectID'], querynames, inputdataset, method, category, CUTOFF)
+        elementOfGlory = {en: {q:{} for q in querynames} for en in entities}
         for query in querynames:
             filename = "/tmp/%s-%d.txt" %(request.user.pk, int(time.time()))
             datahash = {}
@@ -52,6 +52,7 @@ def main(request):
                     for profile in datahash[taxa]: 
                         count +=1
                         f.write(','+str(profile))
+                    elementOfGlory[taxa][query]['n'] = str(count)
                     while count < longest_list: 
                         f.write(','+str('0'))
                         count+=1
@@ -64,16 +65,16 @@ def main(request):
               if bp == "": continue
               tmp2 = bp.split(',')
               tmp2 = [float(s) if isfloat(s) else s for s in tmp2]
-              if tmp2[0] in elementOfGlory: elementOfGlory[tmp2[0]][query] = tmp2 
-              else: elementOfGlory[tmp2[0]] = {query : tmp2}
-        finaldata = [ [], [], [] ]
+              if tmp2[0] in elementOfGlory: elementOfGlory[tmp2[0]][query]['stats'] = tmp2 
+              else: elementOfGlory[tmp2[0]] = {query : {'stats': tmp2}}
+        finaldata = [ [], [], [], len(querynames) ]
         i = 0
         for en in entities:
           for query in querynames:
-            bp = elementOfGlory[en][query]
+            bp = elementOfGlory[en][query]['stats']
             bp.pop(0)
             if len(bp[5:]): [finaldata[2].append([i,float(x)]) for x in bp[5:] if x != '']
-            finaldata[0].append(en)
+            finaldata[0].append(en+' ('+elementOfGlory[en][query].get('n', '?')+')')
             finaldata[1].append(bp[:5])
             i+=1  
         return HttpResponse(json.dumps(finaldata), content_type="application/json")
