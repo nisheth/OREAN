@@ -4,7 +4,7 @@
 <title>OREAN: {%block title%}{%endblock%}</title>
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/nv.d3.css" />
-<link rel="stylesheet" href="{{STATIC_URL}}css/custom.css" />
+<link rel="stylesheet" href="{{STATIC_URL}}css/custom.css?v=0.4" />
 <!--<link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css">
 <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-theme.min.css">
 -->
@@ -164,7 +164,10 @@ border-radius: 25px 25px 25px 25px;
         </div>
       </div>
       {%if user.is_superuser%}
-      <a style='align-self: auto' href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench white"></span></a>
+      <div>
+	<a style='align-self: auto' href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench white"></span></a>
+  	<a style='align-self: auto' href="/monitorix"><span class="glyphicon glyphicon-stats white"></span></a>
+      </div>
       {%endif%}
   </div>
 </div>

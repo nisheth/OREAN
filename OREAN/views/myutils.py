@@ -8,7 +8,7 @@ import json
 import os,subprocess
 from OREAN.views import SCRIPTPATH
 from api.models import *
-from django.db.models import Max, Avg
+from django.db.models import Max, Avg, Count
 
 def call_api(request, api, params={}, is_post=False):
     if 'projectID' in request.session: params['projectID'] = request.session['projectID']
@@ -64,12 +64,13 @@ def runC(script, file):
     out, err = p.communicate()
     return out
 
-def topTaxa(querynames, dataset, method, category, LIMIT=20):
+def topTaxa(projectID, querynames, dataset, method, category, LIMIT=20):
     samplelist = []
-    for q in Query.objects.filter(name__in=querynames):
+    for q in Query.objects.filter(project_id=projectID, name__in=querynames):
       samplelist+=q.expandsamples
     samplelist = list(set(samplelist))
-    results = Analysis.objects.filter(dataset=dataset, method=method, category=category).values('entity').annotate(Avg('profile')).order_by('-profile__avg')[:LIMIT]
+    #results = Analysis.objects.filter(project_id=projectID, sample__in=samplelist, dataset=dataset, method=method, category=category).values('entity').annotate(Avg('profile')).order_by('-profile__avg')[:LIMIT]
+    results = Analysis.objects.filter(project_id=projectID, sample__in=samplelist, dataset=dataset, method=method, category=category).values('entity').annotate(Count('entity')).order_by('-entity__count')[:LIMIT]
     return [str(s['entity']) for s in results]
 
 def activateProject(request, project):
