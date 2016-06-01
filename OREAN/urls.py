@@ -29,6 +29,7 @@ urlpatterns = patterns('',
     url(r'^clustering', 'OREAN.views.clustering.manager', name='clustering'),
     url(r'^heatmap', 'OREAN.views.heatmap.manager', name='heatmap'),
     url(r'^area', 'OREAN.views.area.main', name='area'),
+    url(r'^analytics/comparison', 'OREAN.views.analytics.comparison', name='analyticsComparison'),
     url(r'^analytics', 'OREAN.views.analytics.main', name='analytics'),
     url(r'^createProject', 'OREAN.views.createProject.main', name='createProject'), 
     url(r'^joinProject/(?P<invitecode>\w{40})', 'OREAN.views.joinProject.main', name='joinProject'), 
@@ -70,6 +71,13 @@ urlpatterns = patterns('',
     # documentation
     url(r'^team$', TemplateView.as_view(template_name='team.html'), name='team'),
     url(r'^documentation$', TemplateView.as_view(template_name='documentation.html'), name='documentation'),
+
+   # page archiving
+   url(r'archive/save', 'OREAN.views.archive.save', name='archiveSave'),
+   url(r'archive/fetch/(?P<archive_id>\d+)/$', 'OREAN.views.archive.fetch', name='archiveFetch'),
+   url(r'archive/list', 'OREAN.views.archive.list', name='archiveList'),
+   url(r'archive/share', 'OREAN.views.archive.toggleShare', name='archiveToggleShare'),
+   url(r'archive/delete', 'OREAN.views.archive.delete', name='archiveDelete'),
 )
 
 

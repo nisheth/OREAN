@@ -230,3 +230,16 @@ class UploadedFile(models.Model):
     task_id = models.CharField(max_length=255, null=True, blank=True)
     project = models.ForeignKey(Project, null=True, blank=True)
     file = models.FileField(upload_to="uploads")
+
+class SavedPage(models.Model):
+    user = models.ForeignKey(User)
+    project = models.ForeignKey(Project)
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    url = models.URLField()
+    blob = models.TextField()
+    shared = models.BooleanField()
+    datestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("project", "name")

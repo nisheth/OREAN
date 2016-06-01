@@ -10,7 +10,9 @@
 -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/css/select2.min.css" />
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/css/select2.min.css" />-->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/css/select2.min.css" rel="stylesheet" />
+
 <style>
 #projectbin{
 	display: flex;
@@ -59,6 +61,7 @@ border-radius: 25px 25px 25px 25px;
   ga('create', 'UA-62931735-1', 'bioinfora.com');
   ga('send', 'pageview');
 </script>
+<script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}";</script>
 
 {%block header%}
 {%endblock%}
@@ -92,6 +95,7 @@ border-radius: 25px 25px 25px 25px;
             <li><a href='{%url "uploadMetadata"%}'>Upload Metadata</a></li>
             <li><a href='{%url "uploadStatus"%}'>View Uploads</a></li>
             {%endif%}
+            <li><a href='{%url "archiveList"%}'>Saved Pages</a></li>
           </ul>
         </li>
         <li class="dropdown">
@@ -108,7 +112,7 @@ border-radius: 25px 25px 25px 25px;
           <ul class='dropdown-menu'>
             <li><a href='{% url "attributes" %}'>Bar Chart</a></li>
             <li><a href='{% url "analytics" %}'>Visual Explorer</a></li>
-            <li><a href='{% url "analytics" %}?comparison=True'>Visual Comparison</a></li>
+            <li><a href='{% url "analyticsComparison" %}'>Visual Comparison</a></li>
           </ul>
         </li>
         <li class="dropdown">
@@ -163,16 +167,53 @@ border-radius: 25px 25px 25px 25px;
                 {%endfor%}
         </div>
       </div>
-      {%if user.is_superuser%}
       <div>
-	<a style='align-self: auto' href="{%url 'home'%}admin"><span class="glyphicon glyphicon-wrench white"></span></a>
-  	<a style='align-self: auto' href="/monitorix"><span class="glyphicon glyphicon-stats white"></span></a>
-      </div>
+	{%block savePageIcon%}
+	<a id='savePageButton' style='align-self: auto' data-toggle="modal" data-target="#pageSaveModal" href="#"><span title="save page to my archive" class="glyphicon glyphicon-floppy-disk white"></span></a>
+	{%endblock%}
+      {%if user.is_superuser%}
+	<a style='align-self: auto' href="{%url 'home'%}admin"><span title="go to admin console" class="glyphicon glyphicon-wrench white"></span></a>
+  	<a style='align-self: auto' href="/monitorix"><span title="view system monitor" class="glyphicon glyphicon-stats white"></span></a>
       {%endif%}
+      </div>
   </div>
 </div>
 
       {%endif%}
+
+<!-- Modal -->
+<div class="modal fade black" id="pageSaveModal" tabindex="-1" role="dialog" aria-labelledby="mySavePageModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="savePageForm" method="POST" action="{%url 'archiveSave'%}">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="mySavePageModalLabel">Save page to archive</h4>
+        </div>
+        <div class="modal-body">
+          	{%csrf_token%}
+                <div class="form-group">
+                  <label for="savedPageName">Name</label>
+                  <input type="text" class="form-control" id="savedPageName" name='savedPageName' placeholder="Name">
+                </div>
+                <div class="form-group">
+          	  <label for="savedPageDescription">Description</label>
+		  <textarea id='savedPageDescription' class="form-control" name='description' rows="4" cols="75" placeholder='Enter your description here'></textarea>
+                </div>
+		<div class="checkbox">
+    		  <label>
+  		    <input name='share' type="checkbox"> Share this link with others in the project 
+  		  </label>
+  		</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button id='submitSavePageButton' type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <nav class="navbar navbar-inverse navbar-fixed-bottom" style='height: 25px; min-height: 25px;'>
   <div class="navbar-header white" style='width: 100%'>
@@ -188,7 +229,9 @@ border-radius: 25px 25px 25px 25px;
 <script src="{{STATIC_URL}}js/nv.d3.min.js"></script>
 <script src="{{STATIC_URL}}js/crossfilter.v1.min.js"></script>
 <script src="{{STATIC_URL}}js/jquery.blockUI.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/js/select2.min.js"></script>
+<!--<script src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.0-beta.3/js/select2.min.js"></script>-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/js/select2.min.js"></script>
+<script src="{{STATIC_URL}}js/savePage.orean.js?v=0.2"></script>
 
 {%block main%}
 {%endblock%}

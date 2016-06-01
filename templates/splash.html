@@ -6,16 +6,8 @@
 
 {%block main%}
 <div id='content'>
-<div class='container messagebin'>
-{%if messages%}
-{%for message in messages%}
-<div class="clearfix text-center alert alert-{%if message.tags%}{{message.tags}}{%else%}info{%endif%}">
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-    {{message}}
-</div>
-{%endfor%}
-{%endif%}
-</div>
+
+{%include "snippets/messages.html"%}
 
 <div class="site-wrapper">
      <div class="site-wrapper-inner">

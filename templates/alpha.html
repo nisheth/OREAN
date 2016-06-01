@@ -11,37 +11,12 @@
 
 <hr><legend>Select Queries</legend>
 <div class='selecttbl'>
-  <div class='selectrow'>
-    <div class='selectleft'>Choices</div>
-    <div class='selectmiddle'></div>
-    <div class='selectright'>Selections</div>
-  </div>
-  <div class='selectrow'>
-    <div class='selectleft'>
-      <select id='queryoptions' size="{{queryies|length}}" multiple style='width: 75%; height: 100%;'>
+      <select id='chosenquery' name='chosenquery' multiple style="width: 25%">
       {%for q in queries%}
         <option value="{{q.name}}">{{q.name}}</option>
       {%endfor%}
       </select>
-    </div>
-    <div class='selectmiddle'>
-      <button type='button' id='choosequery'><span class="glyphicon glyphicon-arrow-right"></span></button><br>
-      <button type='button' id='removequery'><span class="glyphicon glyphicon-arrow-left"></span></button>
-    </div>
-    <div class='selectright'>
-      <form id='diversityform' action="{%url 'alpha'%}" method='GET'>
-        <select id='chosenquery' size="{{queryies|length}}" multiple style='width: 75%; height: 100%;'>
-        </select>
-      </form>
-    </div>
-  </div>
-  <div class='selectrow'>
-    <div class='selectleft'></div>
-    <div class='selectmiddle'>
-      <button type='button' id='submit'>Submit</button>
-    </div>
-    <div class='selectright'></div>
-  </div>
+      <br><button type='button' id='submit'>Submit</button>
 </div>
 </form>
 {%endblock%}
@@ -54,6 +29,8 @@
 <script src="https://code.highcharts.com/highcharts-more.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script>
+
+$("#chosenquery").select2();
 
 Highcharts.setOptions({
      colors: [

@@ -2,11 +2,18 @@
 
 {%block title%}Home{%endblock%}
 
+{%block savePageIcon%}{%endblock%}
+
+
 {%block header%}
 <link rel="stylesheet" href="{{STATIC_URL}}css/flexcontent.css" />
 {%endblock%}
 
 {%block main%}
+
+{%include "snippets/messages.html"%}
+
+
 	<div class='flex-parent white'>
 	<div class='flex-bin'>
 	    <div>

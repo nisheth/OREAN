@@ -5,7 +5,7 @@
 {%block sidebar%}
 Choose Query
 <form id='diversityform' action="{%url '16sProfileBoxplot'%}" method='GET'>
-<select id='query' multiple style="width: 75%;">
+<select id='query' name="query" multiple style="width: 75%;">
 {%for q in queries%}
     <option value="{{q.name}}">{{q.name}}</option>
 {%endfor%}
@@ -152,7 +152,7 @@ function getdiversity(selectedItem) {
     $.ajax({
         type: form.attr('method'),
         url: form.attr('action'),
-        data: form.serialize()+"&format=json&"+selectedItem,
+        data: form.serialize()+"&format=json&",
         dataType: 'json',
         success: function (data) {
             //N = countResp(data[0]);

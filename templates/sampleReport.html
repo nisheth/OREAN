@@ -4,13 +4,15 @@
 {%block sidebar %}
 <h2>Sample Report</h2>
 
+<form>
  <select name='sample' id='samplelist' style='width: auto'>
  	<option value="">----------</option>
  {%for s in samples%}
  	<option value="{{s}}">{{s}}</option>
  {%endfor%}
 </select>
-<button class='btn btn-default' id='submit'>Generate Report</button>
+<button type="button" class='btn btn-default' id='submit'>Generate Report</button>
+</form>
 
 {%endblock%}
 

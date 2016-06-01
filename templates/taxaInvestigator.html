@@ -25,8 +25,8 @@
 		<tr><th><label for="maxSamplePerc">Maximum % of samples with Entity:</label></th><td><input min="0" max="100" value=100 type='number' name='maxSamplePerc' id='maxSamplePerc'/></td></tr>
 	</table>
 	<p id='criteriastatement'> The current criteria will return entities present in at least 50% of samples but no more than 100% of samples and where no single sample in the queryset contains a relative quantity below 0 or above 5.</p>
+        <button id='submitbutton' type='button' class='btn btn-primary'>Submit</button>
     </form>
-    <button id='submitbutton' type='button' class='btn btn-primary'>Submit</button>
 {%endblock%}
 
 {%block content%}

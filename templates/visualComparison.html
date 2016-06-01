@@ -5,7 +5,7 @@
 {%block sidebar%}
 <legend>Select Two Queries</legend>
 <form action='#' method='GET'>{%csrf_token%}
-   <select multiple="multiple" id='queryselect' name='query'>
+   <select multiple="multiple" id='queryselect' name='query' style="width: 25%;">
    <option value="">---</option>
    {%for query in queries %}
    <option pid="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
@@ -14,34 +14,13 @@
    <hr>
 
 <legend>Select Attributes</legend>
-<div class='selecttbl'>
-  <div class='selectrow'>
-    <div class='selectleft'>Choices</div>
-    <div class='selectmiddle'></div>
-    <div class='selectright'>Selections</div>
-  </div>
-  <div class='selectrow'>
-    <div class='selectleft'>
-      <select id='attrlist' multiple style="width: 75%;">
-      </select>
-    </div>
-    <div class='selectmiddle'>
-      <button type='button' id='choosequery'><span class="glyphicon glyphicon-arrow-right"></span></button><br>
-      <button type='button' id='removequery'><span class="glyphicon glyphicon-arrow-left"></span></button>
-    </div>
-    <div class='selectright'>
-        <select id='chosenattrs' name='chosenattrs' multiple style="width: 75%;">
-        </select>
-    </div>
-  </div>
-  <div class='selectrow'>
-    <div class='selectleft'></div>
-    <div class='selectmiddle'>
-      <button class="btn btn-default" type='button' id='submit'>Submit</button>
-    </div>
-    <div class='selectright'></div>
-  </div>
-</div>
+<select id='chosenattrs' name='chosenattrs' multiple style="width: 25%;">
+{%for attr in attributes%}
+	<option value="{{attr}}">{{attr}}</option>
+{%endfor%}
+</select>
+      
+<button class="btn btn-default" type='button' id='submit'>Submit</button>
 
 </form>
 
@@ -73,38 +52,7 @@
 
 {%block js%}
 <script>
-function getattrs(pid) {
-  $("#attrlist").empty();
-  $("#chosenattrs").empty();
-  $.ajax({
-    url: '{%url "ListAttributes"%}',
-    data: "projectID="+pid,
-    success: function(data) {
-        data.sort(function(a,b){
-          if(a.name == b.name)
-            return 0;
-          if(a.name < b.name)
-            return -1;
-          if(a.name > b.name)
-            return 1;
-        });
-        data.forEach(function(attribute) {
-          $("#attrlist").append("<option>"+attribute.name+"</option>");
-        });
-    },
-    dataType: 'json',
-  });
-}
-
-$('#choosequery').click(function() {
-  var selectedItem = $("#attrlist option:selected");
-  $("#chosenattrs").append(selectedItem);
-});
-
-$('#removequery').click(function() {
-  var selectedItem = $("#chosenattrs option:selected");
-  $("#attrlist").append(selectedItem);
-});
+$("#chosenattrs").select2();
 
 function arraytotable (myarr, header) {
   var tblrow = "";
@@ -165,9 +113,9 @@ function formatdata(qindex) {
 $("#submit").click(function() {
   var pid = parseInt($('option:selected', "#queryselect").attr('pid'));
   var attrstring = "";
-  var choices = document.getElementById('chosenattrs').options;
+  var choices = $("#chosenattrs").val();
   for (var i=0; i < choices.length; i++) {
-    attrstring+="&attribute="+choices[i].text;
+    attrstring+="&attribute="+choices[i];
   }
   var querys = $("#queryselect").val();
   for (var qindex = 0; qindex < querys.length; qindex++) {
@@ -233,7 +181,6 @@ function makeplot(input, colName, qindex) {
 }
 
 $(document).ready(function() {
-  getattrs({{request.session.projectID}});
   $("#queryselect").select2({
     maximumSelectionLength: 2
   });

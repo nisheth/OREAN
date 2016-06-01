@@ -1,0 +1,115 @@
+{% extends "base.html"%}
+
+{%block title%}Saved Pages{%endblock%}
+{%block savePageIcon%}{%endblock%}
+
+{%block sidebar%}
+<h2>Saved Pages</h2>
+{%endblock%}
+
+
+{%block content%}
+<!-- Nav tabs -->
+<ul class="nav nav-tabs">
+  <li class="active"><button class='btn btn-primary tabbutton' href="#mypages" data-toggle="tab">My Pages</button></li>
+  <li><button href="#sharedpages" data-toggle="tab" class='btn btn-default tabbutton'>Shared Pages</button></li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+  <div class="tab-pane active" id="mypages">
+    <table class='table' style='color:white'>
+      <tr><th>Name</th><th>Description</th><th>Shared</th><th>Owner</th><th>Action</th></tr>
+      {%for q in mypages%}
+      <tr>
+          <td><span name='archiveName'>{{q.name}}</span> <a name='archiveLink' href="{{q.url}}?archive_id={{q.id}}"><span class="label label-primary">view</span></a></td>
+          <td>{%if q.description%}{{q.description}}{%else%}None{%endif%}</td>
+          <td name='shared'>{{q.shared}}</td>
+          <td>{{q.user}}</td>
+          <td>
+            <button data-archive="{{q.id}}" class="btn btn-{%if q.shared%}danger{%else%}success{%endif%} btn-xs shareUnshareButton" type="button">{% if q.shared %}un{%endif%}share</button>
+            <button class="btn btn-info btn-xs displayURLButton" type="button">display url</button>
+            <button class="btn btn-primary btn-xs deleteButton" data-archive="{{q.id}}" data-pagename="{{q.name}}" type="button">delete</button>
+          </td>
+      </tr>
+      {%endfor%}
+    </table>
+  </div>
+  <div class="tab-pane" id="sharedpages">
+    <table class='table' style='color:white'>
+      <tr><th>Name</th><th>Description</th><th>Shared</th><th>Owner</th><th>Action</th></tr>
+      {%for q in sharedpages%}
+      <tr>
+          <td>{{q.name}} <a href="{{q.url}}?archive_id={{q.id}}"><span class="label label-primary">view</span></a></td>
+          <td>{%if q.description%}{{q.description}}{%else%}None{%endif%}</td>
+          <td name='shared'>{{q.shared}}</td>
+          <td>{{q.user}}</td>
+          <td>
+            <button class="btn btn-info btn-xs displayURLButton" type="button">display url</button>
+          </td>
+      </tr>
+      {%endfor%}
+    </table>
+  </div>
+</div>
+{%endblock%}
+
+{%block js%}
+<script>
+
+// highlights current tab
+$('.tabbutton').click(function() {
+	$('.tabbutton').addClass("btn-default"); 
+	$('.tabbutton').removeClass("btn-primary");
+        $(this).removeClass("btn-default");
+	$(this).addClass("btn-primary"); 
+});
+
+
+$(".shareUnshareButton").click(function() {
+	var shareelement = $(this).closest('tr').find('[name=shared]');
+	if (shareelement.html() === "True"){ 
+		shareelement.html("False");
+		$(this).html("share")
+		$(this).removeClass("btn-danger");
+		$(this).addClass("btn-success");
+	} else {
+		shareelement.html("True");
+		$(this).html("unshare")
+		$(this).removeClass("btn-success");
+		$(this).addClass("btn-danger");
+	}
+	var jqxhr = $.get( "{%url 'archiveToggleShare'%}?id="+$(this).attr('data-archive'), function(data) {
+	  	pageArchive.writeMessage(data, "success");
+	})
+	  .fail(function(jqXHR, textStatus, errorThrown) {
+	  	pageArchive.writeMessage(jqXHR.responseText, "danger");
+	  })
+	});
+
+$(".displayURLButton").click(function() {
+	var saveName = $(this).closest('tr').find('[name=archiveName]').html();
+	var URL = window.location.origin + $(this).closest('tr').find('[name=archiveLink]').attr('href');
+	pageArchive.writeMessage("<div><strong>"+saveName+": </strong><p>"+URL+"</p></div>", "info");
+});
+
+$('.deletebutton').click(function() {
+    var rowelement = $(this).closest('tr');
+    var queryname = $(this).attr("data-pagename");
+    var archiveID = parseInt($(this).attr("data-archive"));
+    var r=confirm("Are you sure you want to delete this saved page ('"+queryname+"')?");
+    if (r==true) {
+        $.ajax({
+            type: 'get',
+            url: '{%url "archiveDelete"%}',
+            data: "id="+archiveID,
+            success: function (data) {
+                $(rowelement).remove();
+		pageArchive.writeMessage(data, "success");
+            },
+        });
+    }
+});
+
+</script>
+{%endblock%}
