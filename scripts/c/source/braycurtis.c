@@ -17,11 +17,10 @@ int compare (const void * a, const void * b)
 	return (fa > fb) - (fa < fb);
 }
 
-
 int main(int argc, const char * argv[])
 {
 	FILE *ptrFile;
-	char buf[10000];
+	char buf[100000];
 	const char *delim = ",";
 	char *token;
     int rows = 0;
@@ -35,7 +34,7 @@ int main(int argc, const char * argv[])
 	ptrFile = fopen(argv[1], "r");
 
     // Determine data size
-	fgets(buf, 10000, ptrFile);
+	fgets(buf, 100000, ptrFile);
 	if (buf[strlen(buf)] != '\0') {printf("Buffer exceeded\n"); return 1;}
 	rows = atoi(strtok(buf, delim)); // rows count of the taxa
 	cols = atoi(strtok(NULL, delim)); // columns count the samples
@@ -44,7 +43,7 @@ int main(int argc, const char * argv[])
 	float array[cols][rows];
 
 	// loop through data and populate array
-	while (fgets(buf, 10000, ptrFile)!=NULL) {
+	while (fgets(buf, 100000, ptrFile)!=NULL) {
 	
 		token = strtok(buf, delim); // skip past taxa name
 		token = strtok(NULL, delim);
@@ -58,8 +57,9 @@ int main(int argc, const char * argv[])
 	}
 	
 	// compute bray curtis value for each comparision
-    int myN = (cols*(cols-1))/2;
-	float results[myN];
+        int myN = (cols*(cols+1)) / 2;
+        float *results;
+	results = malloc((myN+1) * sizeof *results);
 	
 	int N = 0;
 	for (int i = 0; i < cols; i++) {
@@ -73,7 +73,7 @@ int main(int argc, const char * argv[])
 				if (array[i][k] < array[j][k]) { minSum += array[i][k];}
 				else {minSum+=array[j][k];}
 			}
-			results[N] = (1-(2*((1.0*minSum)/(sA+sB))));
+			results[N] = (float)(1-(2*((1.0*minSum)/(sA+sB))));
 			N++;
 		}
 	}
@@ -128,6 +128,7 @@ int main(int argc, const char * argv[])
 		}
 	}
 	free(outliers);
+	free(results);
 	printf("\n");
     return 0;
 }

@@ -26,10 +26,10 @@ def main(request):
     if querynamelist:
         if not len(querynamelist) == 2 or not inputdataset or not method or not category: return HttpResponse("required GET parameters: query, dataset, method, category, query2" , content_type='text/plain')
         queryname, queryname2 = querynamelist
-        #query1dataset =  internal.GetDataset(request, params={'queryname': [queryname], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'category': [category], 'method': [method]})
-        #query2dataset =  internal.GetDataset(request, params={'queryname': [queryname2], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'category': [category], 'method': [method]})
-        query1dataset =  internal.GetDataset(request, params={'queryname': [queryname], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'method': [method]})
-        query2dataset =  internal.GetDataset(request, params={'queryname': [queryname2], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'method': [method]})
+        query1dataset =  internal.GetDataset(request, params={'queryname': [queryname], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'category': [category], 'method': [method]})
+        query2dataset =  internal.GetDataset(request, params={'queryname': [queryname2], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'category': [category], 'method': [method]})
+        #query1dataset =  internal.GetDataset(request, params={'queryname': [queryname], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'method': [method]})
+        #query2dataset =  internal.GetDataset(request, params={'queryname': [queryname2], 'projectID': [request.session['projectID']], 'dataset': [inputdataset], 'method': [method]})
         query1samples = internal.ListQueries(request, {'projectID': [request.session['projectID']], 'full': [True], 'queryname': [queryname]})[0]['results'].split(',')
         query2samples = internal.ListQueries(request, {'projectID': [request.session['projectID']], 'full': [True], 'queryname': [queryname2]})[0]['results'].split(',')
         totalsamples = list(set(query1samples+query2samples))
