@@ -37,9 +37,10 @@ class resetPasswordForm(forms.Form):
         return cleaned_data
 
 class newProjectForm(forms.ModelForm):
+    timeseries_flag = forms.BooleanField(label='Timeseries')
     class Meta:
         model = Project
-        fields = ['name', 'description', 'publication', 'publication_url', 'project_url', 'public', 'user', 'invitecode']
+        fields = ['name', 'description', 'publication', 'publication_url', 'project_url', 'public', 'user', 'invitecode' , 'timeseries_flag']
         widgets = {'user': forms.HiddenInput(), 'invitecode': forms.HiddenInput()}
 
 class addUserToProjectForm(forms.Form):

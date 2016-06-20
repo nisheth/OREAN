@@ -48,3 +48,13 @@ def metadataFileTask(fileid, projectID, format):
     resp.update(meta)
     return resp
 
+
+@shared_task
+def timeseriesFileTask(fileid, projectID):
+    uploadedfile = UploadedFile.objects.get(pk=fileid)
+    filename = uploadedfile.file.path
+    meta={'type':'Timeseries File', 'projectID': projectID, 'filename': filename.split('/')[-1]}
+    current_task.update_state(state='STARTED', meta=meta)
+    resp = insertTimeseriesFromTable(filename,projectID)
+    resp.update(meta)
+    return resp

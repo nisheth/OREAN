@@ -113,6 +113,10 @@ border-radius: 25px 25px 25px 25px;
             <li><a href='{% url "attributes" %}'>Bar Chart</a></li>
             <li><a href='{% url "analytics" %}'>Visual Explorer</a></li>
             <li><a href='{% url "analyticsComparison" %}'>Visual Comparison</a></li>
+            {%if request.session.projectTimecourse%}
+	    <li role="separator" class="divider"></li>
+    	    <li><a href="{%url 'metadataTimeseries' %}">Attribute Timeseries</a></li>
+	    {%endif%}
           </ul>
         </li>
         <li class="dropdown">
@@ -123,6 +127,10 @@ border-radius: 25px 25px 25px 25px;
             <li><a href='{% url "16sProfileBoxplot" %}'>Boxplot</a></li>
             <li><a href='{% url "samplereport" %}'>Sample</a></li>
             <li><a href='{% url "taxaInvestigator" %}'>Entity investigation</a></li>
+            {%if request.session.projectTimecourse%}
+            <li role="separator" class="divider"></li>
+            <li><a href="{%url 'mostAbundantOverTime' %}">Data Timeseries</a></li>
+            {%endif%}
           </ul>
         </li>
         <li class="dropdown">

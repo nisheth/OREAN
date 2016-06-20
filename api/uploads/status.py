@@ -10,6 +10,8 @@ def main(request):
            feedback = analysisFileTask.AsyncResult(upload.task_id)
         elif upload.type =='metadata': 
            feedback = metadataFileTask.AsyncResult(upload.task_id)
+        elif upload.type == 'timeseries':
+           feedback = timeseriesFileTask.AsyncResult(upload.task_id)
         upload.basename = upload.file.name.split('/')[-1]
         upload.feedback = feedback
     params['tasks'] = uploads

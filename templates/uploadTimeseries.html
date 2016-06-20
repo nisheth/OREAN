@@ -1,0 +1,39 @@
+{% extends "splash.html" %}
+
+{%block title %}upload timeseries{%endblock%}
+{%block savePageIcon%}{%endblock%}
+
+{% block content %}
+<h2>Upload Timeseries</h2>
+{{msg}}
+
+<form id='uploadForm' action='{%url "uploadTimeseries"%}' method='post' enctype='multipart/form-data'>
+{%csrf_token%}
+
+<table class='white table text-left'>
+<tr><th>File</th><td>{{fileform.file}} {{fileform.format.as_hidden}} {{fileform.user}} {{fileform.type}}</td></tr>
+</table>
+
+<a href='{%url "uploadStatus" %}'><button type='button' class='btn btn-default'/>View upload history</button> </a>
+<input id='submit' type='button' class='btn btn-default' value='Upload Data'/>
+</form>
+
+<div id='progress-panel' class="panel panel-default" style='display:none'>
+  <div class="panel-heading">
+	<progress max=100 value=0 style='width:100%'></progress>
+	<div class='text-center'><span id='percentage'>0</span> % uploaded</div>
+  </div>
+</div>
+{%endblock%}
+
+{%block js%}
+<script src="{{STATIC_URL}}js/uploadProgress.js"></script>
+<script>
+//document.getElementById("id_file").style.margin = "0 auto";
+$('#submit').click(function(){
+    var urlstring = "{%url "uploadTimeseries"%}";
+    var formdata = new FormData($('#uploadForm')[0]);
+    uploadFormShowFileProgress(urlstring, formdata);
+});
+</script>
+{%endblock%}

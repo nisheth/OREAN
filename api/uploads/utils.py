@@ -628,3 +628,95 @@ def insertFromBiomFile(filename, projectID, **kw):
         resp['ok'] = True
         resp['rows'] = len(table.ids()) 
     return resp
+
+
+def insertTimeseriesFromTable(filename, projectID):
+    resp = {'ok': False, 'msg': [], 'rows': 0}
+
+    # Test File input
+    try:
+        fh = open(filename, 'U')
+    except:
+        resp['msg'].append('Error in accessing file "%s"' % (filename))
+        return resp
+
+    # Test project ID input
+    try:
+        project = Project.objects.get(pk=int(projectID))                                           # attempt to find the project for the given ID
+    except Project.DoesNotExist:
+        resp["msg"].append('Project "%s" does not exist' % projectID)      # report if the project ID does not exist
+        return resp
+
+    # Once usable data was input check validity of file contents
+    header = fh.next().strip().split('\t')
+    if len(header) != 3:
+        resp["msg"].append("Input file must have 3 tab-delimited columns. The provided file has %d" % len(header))
+
+    ctr = 0
+    typecheck = dict()
+    for row in fh:
+        ctr+=1
+        line = row.strip().split('\t')
+        if len(line) != len(header):
+            resp["msg"].append('Data row "%d" has a length "%d", which does not match the header length "%d"' % ( ctr, len(line), len(header) ))
+        subject, sample, timepoint = line 
+	if not Attributes.objects.filter(sample=sample).exists():
+            resp["msg"].append('No existing metadata was found for sample "%s" in the timeseries file. Metadata must be provided before timeseries data' % ( sample ))
+        #if not Analysis.objects.filter(sample=sample).exists():
+        #    resp["msg"].append('No existing analysis data was found for sample "%s" in the timeseries file. Analysis data must be provided before timeseries data' % ( sample ))
+        try:
+            timepoint = float(timepoint)
+        except:
+            resp["msg"].append("Timepoints must be numeric. Therefore the timepoint value '%s' on row '%d' of the file is not valid" % (timepoint, c))
+    if len(resp['msg']) != 0:
+        return resp
+    else:
+        resp['ok'] = True
+        resp['rows'] = ctr
+    fh.seek(0)
+    fh.next()
+
+    tssubjectinfoObj, created = AttributeInfo.objects.get_or_create(project   = project,
+                                                                    name      = 'tssubject.',
+                                                                    fieldtype = 'STRING',
+                                                                    values    = "",
+                                                                   )
+    #tstypeinfoObj, created = AttributeInfo.objects.get_or_create(project   = project,
+    #                                                             name      = 'tstype.',
+    #                                                             fieldtype = 'STRING',
+    #                                                             values    = "",
+    #                                                            )
+    tstimepointinfoObj, created = AttributeInfo.objects.get_or_create(project   = project,
+                                                                      name      = 'tstimepoint.',
+                                                                      fieldtype = 'DECIMAL',
+                                                                      values    = "",
+                                                                     )
+
+    for row in fh:
+      line = row.strip().split('\t')
+      subject, sample, timepoint = line 
+      tssubjectObj = Attributes(project  = project,
+                                sample   = sample,
+                                category = 'Timeseries Data',
+                                field    = 'tssubject.',
+                                value    = subject,
+                               )
+      #tstypeObj = Attributes(project  = project,
+      #                       sample   = sample,
+      #                       category = 'Timeseries Data',
+      #                       field    = 'tstype.',
+      #                       value    = tstype,
+      #                      )
+      tstimepointObj = Attributes(project  = project,
+                                  sample   = sample,
+                                  category = 'Timeseries Data',
+                                  field    = 'tstimepoint.',
+                                  value    = timepoint,
+                                 )
+      tssubjectObj.save()
+      #tstypeObj.save()
+      tstimepointObj.save()
+    fh.close()
+    project.timeseries_data = True
+    project.save()
+    return resp

@@ -47,6 +47,9 @@ class Project(models.Model):
     public=models.BooleanField(default=False)
     user=models.ForeignKey(User)
     invitecode = models.CharField(max_length=40, unique=True)
+    public=models.BooleanField(default=False)
+    timeseries_flag=models.BooleanField(default=False)
+    timeseries_data=models.BooleanField(default=False)
     objects = GetOrNoneManager()
 
     def __unicode__(self):
@@ -222,6 +225,7 @@ class UploadedFile(models.Model):
  	('analysis', 'analysis'),
         ('metadata', 'metadata'),
         ('taxonomy', 'taxonomy'),
+        ('timeseries', 'timeseries'),
     )
 
     type = models.CharField(max_length=255, choices = FILE_TYPES)

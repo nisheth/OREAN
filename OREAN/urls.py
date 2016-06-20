@@ -22,6 +22,7 @@ urlpatterns = patterns('',
     # GUI frontend
     url(r'^$', 'OREAN.views.home.main', name='home'),
     url(r'^entityInvestigation$', 'OREAN.views.taxaInvestigator.getRareTaxa', name='taxaInvestigator'),
+    url(r'^attributes/timeseries', 'OREAN.views.attributes.timeseries', name='metadataTimeseries'),
     url(r'^attributes', 'OREAN.views.attributes.main', name='attributes'),
     url(r'^16sProfileBoxplot', 'OREAN.views.16sProfileBoxplot.main', name='16sProfileBoxplot'),
     url(r'^stackedbars', 'OREAN.views.stackedbars.main', name='stackedbars'),
@@ -56,6 +57,7 @@ urlpatterns = patterns('',
     url(r'resetPassword/(?P<token>\w{32})/$', 'OREAN.views.resetPassword.main', name='resetPassword'),
     url(r'timecourse/table', 'OREAN.views.timecourse.viewTimecourseInTable', name='timecourseTable'),
     url(r'^query/rebuild$', 'OREAN.views.buildquery.rebuild', name='rebuildquery'),
+    url(r'^timecourse/mostAbundant$', 'OREAN.views.timecourse.mostAbundantOverTime', name='mostAbundantOverTime'),
 
     # sample report urls
     url(r'sample/report', 'OREAN.views.samplereport.main', name='samplereport'),
@@ -66,6 +68,7 @@ urlpatterns = patterns('',
     url(r'upload/taxa', 'api.uploads.taxa.main', name='uploadTaxa'),
     url(r'upload/analysis', 'api.uploads.analysis.main', name='uploadAnalysis'),
     url(r'upload/metadata', 'api.uploads.metadata.main', name='uploadMetadata'),
+    url(r'upload/timeseries', 'api.uploads.metadata.timeseries', name='uploadTimeseries'),
     url(r'upload/status', 'api.uploads.status.main', name='uploadStatus'),
 
     # documentation

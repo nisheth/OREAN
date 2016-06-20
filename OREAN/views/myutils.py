@@ -83,7 +83,7 @@ def activateProject(request, project):
       ap.save()
       request.session['projectID'] = project.pk
       request.session['projectName'] = project.name
-      request.session['projectTimecourse'] = ap.project.is_timecourse()
+      request.session['projectTimecourse'] = ap.project.timeseries_data
       messages.add_message(request, messages.SUCCESS, "Project changed to %s" %project.name)
     except:
       messages.add_message(request, messages.ERROR, "Unexpected error while selecting the project (%s)" % traceback.format_exc())

@@ -1,0 +1,247 @@
+{%extends "base.html"%}
+
+{%block title%}Omics Timeseries{%endblock%}
+{%block sidebar%}
+    <h2>Omics Timeseries</h2>
+    <hr>
+    <legend>Select a Query</legend>
+    <form id='submitform' action='{%url "mostAbundantOverTime"%}' method='post'>{%csrf_token%}
+       <select name='query'>
+       <option value="">---</option>
+       {%for query in queries %}
+       <option rel="{{query.project}}" value="{{query.name}}" {%if query.name == selectedquery%} selected{%endif%}>{{query.name}}</option>
+       {%endfor%}
+       </select><br>
+       <input type='hidden' id='currentproj' value="{{request.session.projectID}}"/>
+       <hr><legend>Select a Dataset</legend><select name='dataset'></select><br>
+       <hr><legend>Select a Method</legend><select name='method'></select><br>
+       <hr><legend>Select a Category</legend><select name='category'></select><br>
+    <button type="button" id='plotrender'>View</button>
+    </form>
+{%endblock%}
+
+{%block content%}
+<div id="chart">
+</div>
+<button class='black' style="display: none" id="generate">Save as SVG</button>
+{%endblock%}
+
+{%block js%}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
+<script>
+
+loadgraph = function(data) {
+    if(!document.width) {
+      document.width = $(window).width();
+    }
+  //d3.json(inputfile, function(error, data) {
+    //if (error) throw error;
+  
+    data.forEach(function(d) {
+      d.timepoint = +d.timepoint;
+    });
+  
+    // collect info to compute dimensions
+    var subjHeight = 25;
+  
+    var subjects = d3.keys(d3.nest()
+        .key(function(d) { return d.subject; })
+        .map(data));
+  
+    var features = d3.keys(d3.nest()
+        .key(function(d) { return d.feature; })
+        .map(data));
+  
+    // now set dimensions
+    var margin = {bottom: 25, right: (document.width * 0.125), top: 20*features.length+25, left: (document.width * 0.125)};
+    var height = subjects.length * subjHeight;
+    if (height<500){height = 500;}
+    var width = (document.width) - margin.left - margin.right;
+  
+    var x = d3.scale.linear()
+        .range([0, width])
+        .domain(d3.extent(data, function(d) { return d.timepoint; })).nice();
+  
+    var y = d3.scale.ordinal()
+        .rangeRoundBands([0, height], 1)
+        .domain(data.map(function(d) { return d.subject; }));
+  
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+  
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+  
+    var color = d3.scale.category10();
+  
+    var svg = d3.select("#chart").append("svg")
+        .style("width", width + margin.left + margin.right)
+        .style("height", height + margin.top + margin.bottom)
+        .style("font", "10px sans-serif")
+        .style("background-color", "white")
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("width", 200)
+        .style("height", 95)
+        .style("pointer-events", "none")
+        .style("background-color", "black")
+        .style("color", "white")
+	.style("padding", "5 5 5 5")
+	.style("border-radius", "5px")
+        .style("opacity", 0);
+  
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+      .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end")
+        .text("Timepoint");
+  
+    svg.append("g")
+        .attr("class", "axis")
+        .call(yAxis)
+      .append("text")
+        .attr("class", "label")
+        //.attr("transform", "rotate(-90)")
+        .attr("y", -10)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Subject")
+  
+    svg.selectAll(".line")
+        .data(data)
+    .enter().append("line")
+        .attr("x1", 0)
+        .attr("x2", width)
+        .attr("y1", function(d) { return y(d.subject); })
+        .attr("y2", function(d) { return y(d.subject); })
+        .style("stroke-width", 1)
+        .style("stroke", "lightgray");
+
+    var rscale = d3.scale.linear()
+	.domain([0,d3.max(data, function(d) { return d.value; })])
+	.range([2,10])
+  
+    svg.selectAll(".circle")
+        .data(data)
+      .enter().append("circle")
+        .attr("class", "circle")
+        //.attr("height", 10)
+        //.attr("width", 20)
+        //.attr("rx", 5)
+        .attr("r", function(d) {return rscale(d.value)})
+        .attr("cx", function(d) { return x(d.timepoint); })
+        .attr("cy", function(d) { var yVal = y(d.subject); if(d.rank===2) {yVal+=5}else if (d.rank===3){yVal+=10}; return yVal; })
+        .style("fill", function(d) { return color(d.feature); })
+	.style("stroke", "black")
+	.style("stroke-width", 0)
+        .on("mouseover", function(d) {
+  	  d3.select(this).style("stroke-width", 5)
+            tooltip.transition()
+                 .duration(200)
+                 .style("opacity", .9);
+            tooltip.html("<strong>Subject: </strong>" + d.subject + "<br/> <strong>Timepoint: </strong>" + d.timepoint 
+  	        + "<br><strong>Sample: </strong> " + d.sample + "<br><strong>Feature: </strong> " + d.feature + "<br><strong>Value: </strong> " + d.value)
+                 .style("left", x(d.timepoint) + margin.left + "px")
+                 //.style("top", (margin.top+y(d.subject)+25) + "px");
+                 .style("top", (d3.event.pageY+25) + "px");
+        })
+        .on("mouseout", function(d) {
+  	  d3.select(this).style("stroke-width", 0)
+            tooltip.transition()
+                 .duration(500)
+                 .style("opacity", 0);
+        })
+  
+    var legend = d3.select("svg").selectAll(".legend")
+        .data(color.domain())
+      .enter().append("g")
+        .attr("class", "legend")
+        //.attr("transform", function(d, i) { return "translate(0," + (i * 20 + parseInt(d3.select("svg").style("height")) + 25 - margin.bottom) + ")"; });
+        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 10) + ")"; });
+  
+    legend.append("circle")
+        .attr("x", 0+margin.left)
+        //.attr("height", 10)
+        //.attr("width", 20)
+        .attr("cx", 0+margin.left)
+        .attr("cy", 5)
+	.attr('r', 5)
+        .style("fill", color);
+  
+    legend.append("text")
+        .attr("x", 25+margin.left)
+        .attr("y", 5)
+        .attr("dy", ".35em")
+        .style("text-anchor", "start")
+        .text(function(d) { return d; });
+  
+    svg.selectAll("path")
+    	.style("fill", "none")
+  	.style("stroke", "#000")
+  	.style("shape-rendering", "crispEdges");    
+  
+  //});
+}
+
+function runajax(form, chart) {
+        $("div#content").block({message: '<h3><img src="{{STATIC_URL}}img/busy.gif" /> Processing...</h3>'});
+        $.ajax({
+            type: form.attr('method'),
+            url: form.attr('action'),
+            data: form.serialize()+"&format=json",
+            dataType: 'json',
+            success: function (data) {
+                $("#chart").empty();
+                loadgraph(data);
+		$("#generate").show();
+            },
+	    error: function(jqxhr) {
+		pageArchive.writeMessage(jqxhr.responseText, "danger");
+	    },
+            complete: function() {
+                    // unblock when remote call returns
+                    $("div#content").unblock();
+            },
+        });
+}
+
+var frm = $('#submitform');
+$('#plotrender').click(function() {
+        runajax(frm, $('#chart'));
+});
+
+d3.select("#generate")
+    .on("click", writeDownloadLink);
+
+function writeDownloadLink(){
+    try {
+        var isFileSaverSupported = !!new Blob();
+    } catch (e) {
+        alert("blob not supported");
+    }
+
+    var html = d3.select("svg")
+        .attr("title", "test2")
+        .attr("version", 1.1)
+        .attr("xmlns", "http://www.w3.org/2000/svg")
+        .node().parentNode.innerHTML;
+
+    var blob = new Blob([html], {type: "image/svg+xml"});
+    saveAs(blob, "timeseries.svg");
+};
+
+</script>
+
+<script src="{{STATIC_URL}}js/orean_analysis.js"></script>
+{%endblock%}
